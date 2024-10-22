@@ -12,6 +12,6 @@ Our idea is to take the RL approach and apply it to a different problem, specifi
 rewarded while pathogen exchange is penalized. Our goal is to see if simple rules can lead to the evolution of of known social distancing habits. (example in ants: https://www.science.org/doi/10.1126/science.aat4793).
 
 ## Roadmap
-1. first report:
-2. second report:
-3. final report:
+1. first report: define a RL model and tune it's parameters so that we can see it is learning.
+2. second report: add features and increase model comlexity?, perform experiments to see if social distancing traits are emerging (if interactions are sufficiently non-random and contribute to reduced pathogen flow).
+3. final report: perform extensive experiments and compare them to the results of https://www.science.org/doi/10.1126/science.aat4793 to find emerging traits that are observed in their experiments.
