@@ -21,56 +21,55 @@ Individual ants, both infected and uninfected, adjust their behavior. Infected a
 
 These complex behavioral adjustments will be incorporated into a reinforcement learning model focused on disease spread. The agents should be rewarded for exchanging information about their health status and penalized for coming into contact with infected individuals. The goal is to minimize the spread of the disease by encouraging social distancing.
 
-The paper also highlihts that low-level exposure can be beneficial. Later improvements to the model could include a more nuanced approach to the rewards and penalties associated with different levels of exposure, and the possibility for an ant to develop immunity to the pathogen through active immunization. This would allow for a more detailed exploration of the trade-offs between information exchange and pathogen transmission.
+The paper also highlights that low-level exposure can be beneficial. Later improvements to the model could include a more nuanced approach to the rewards and penalties associated with different levels of exposure, and the possibility for an ant to develop immunity to the pathogen through active immunization. This would allow for a more detailed exploration of the trade-offs between information exchange and pathogen transmission.
 
-### Information exchange
-At the start, information exchange will be a simple reward, where agents will be simply rewarded for interacting with other agents. Potential improvements could include a more nuanced approach to information exchange, where agents would also be exchanging resources or other benefits. This could be modeled as a form of cooperation, where agents work together to achieve a common goal.
+### Basic Reward Policy
+Our current plan for a reward policy that will produce social distancing patterns in agents behavior is fully based on agent interaction. We plan to promote social behavior by rewarding them based on the number of near-by agents, which should result in agents grouping up. Social distancing will be promoted by penalizing healthy agents for being near infected ones and vice versa. Specific reward and penalty values will be determined as we start experimenting.
 
+We plan to start with this simple reward policy, before scaling the simulation complexity with a more nuanced agent interactions e.g., where agents would also be exchanging resources or other benefits. This could be modeled as a form of cooperation, where agents work together to achieve a common goal.
 ### Simulation  
 
 #### Environment
-Similar to \cite{li2023predator}, we established a simple physics-based simulation environment where the agents can interact. The environment is a two-dimensional continuous space with periodic boundary conditions, meaning that when an agent crosses one edge of the square environment, it reappears on the opposite side with the same velocity.
+The simulation framework used in this study is based on the multi-agent RL environment developed in Li et al., 2023 \cite{li2023predator}. The environment is a two-dimensional continuous space with periodic boundary conditions, meaning that when an agent crosses one edge of the square environment, it reappears on the opposite side with the same velocity.
 
-#### Agent dynamics
+We plan to adapt the framework for our own needs, which will mainly include changing how agents perceive the environment as we need to include the health status of agents, what happens when agents are close by (possibility of pathogen transmission) and the reward policy used to train the model. In this way we don't have to waste time building our own framework and can invest more time experimenting with different reward policies.
+#### Agent Dynamics
 Agents are depicted as circles with a short line segment indicating their heading direction. The forces acting on an agent include both active (controllable) and passive (inherent) forces:
 
 Active Forces (Agent's Actions):
-- A forward movement force aligned with the agent's current heading: $$a_F$$
-- A rotational force to adjust the agent's heading direction: $$a_R$$
+- A forward movement force aligned with the agent's current heading: $a_F$
+- A rotational force to adjust the agent's heading direction: $a_R$
 
 Passive Forces:
-- A dragging force, acting in the opposite direction of the agent's velocity, which simulates friction or resistance: $$F_d$$
-- A repulsive force between agents in contact: $$F_a$$
+- A dragging force, acting in the opposite direction of the agent's velocity, which simulates friction or resistance: $F_d$
+- A repulsive force between agents in contact: $F_a$
 
 Each timestep, the simulation updates the agents' positions and velocities based on the sum of forces acting on them. These can be summed up as:
 
-$$
-\dot{x} = v
-$$  
-
-$$
-\dot{v} = \frac{ha_F + F_d + F_a}{m}
-$$  
-
-$$
-\dot{\theta} = a_R
-$$  
+$$ \dot{x} = v $$  
+$$ \dot{v} = \frac{ha_F + F_d + F_a}{m} $$  
+$$ \dot{\theta} = a_R $$  
 
 Where:
-- $$x \in \mathbb{R}^2$$ is the agent's position,
-- $$v \in \mathbb{R}^2$$ is the agent's velocity,
-- $$\theta \in [-\pi, \pi]$$ is the agent's heading angle,
-- $$h \in \mathbb{R}^2$$ is the unit vector representing the agent's heading direction, calculated as $$h = [\cos(\theta), \sin(\theta)]^T$$ (with $$||h|| = 1$$),
-- $$m \in \mathbb{R}$$ is the agent's mass.
+- $x \in \mathbb{R}^2$ is the agent's position,
+- $v \in \mathbb{R}^2$ is the agent's velocity,
+- $\theta \in [-\pi, \pi]$ is the agent's heading angle,
+- $h \in \mathbb{R}^2$ is the unit vector representing the agent's heading direction, calculated as $h = [\cos(\theta), \sin(\theta)]^T$ (with $||h|| = 1$),
+- $m$ is the agent's mass.
 
 Various parameters such as agent masses, drag coefficient, stiffness coefficient, maximum forward acceleration, rotational acceleration, timestep duration, and others can be freely adjusted to customize the agents' behaviors.
 
+To align the simulation with ant-like movement rather than the smooth, bird-like flight patterns of the original framework, several parameters will require significant adjustments. In their current settings—such as drag coefficient, stiffness coefficient, maximum forward acceleration, and rotational acceleration—the parameters are optimized for smooth, continuous paths with limited turning sharpness and no halting, resembling bird flight. However, to better emulate the more abrupt, flexible movement characteristic of ants in a 2D bird's-eye view, we will modify these parameters. Specifically, we’ll increase rotational flexibility, reduce constraints on movement continuity, and adjust stopping behaviors to allow agents more freedom in directional shifts and pauses.
 
 ### Model performance measures
 To see if any social distancing patterns emerge, we will transform the agent interactions into a network and analyze the network structure, as shown in *\cite{Stroeymeyt2018}*. We will look at network statistics that affect disease transmission, such as modularity (-), clustering (-), network efficiency (+) and degree centrality (+). We will also measure the average distance between agents, which would indicate that the agents are avoiding each other. First, these will be measured in a network before a pathogen is introducet to see the passive social distancing. Then we will introduce the pathogen and see how the network changes.
 
+Other than that, emergent social distancing behavior should also be quite obvious in the simulation visualization. We expect healthy agents to stay away from infected ones and vice versa. This can be clearly seen if we increase the density of agents in the environment, we should see infected agents get isolated, forming empty circles around them, while healthy agents fill the rest of the simulation space.
+
 ## Results
+No experiments have been run so far, so there are no results to showcase yet.
 
 ## Discussion
+No results to discuss or conclude yet.
 
 ## References
