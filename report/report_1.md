@@ -61,7 +61,7 @@ Where:
 - $$v \in \mathbb{R}^2$$ is the agent's velocity,
 - $$\theta \in [-\pi, \pi]$$ is the agent's heading angle,
 - $$h \in \mathbb{R}^2$$ is the unit vector representing the agent's heading direction, calculated as $$h = [\cos(\theta), \sin(\theta)]^T$$ (with $$||h|| = 1$$),
-- $$m$$ is the agent's mass.
+- $$m \in \mathbb{R}$$ is the agent's mass.
 
 Various parameters such as agent masses, drag coefficient, stiffness coefficient, maximum forward acceleration, rotational acceleration, timestep duration, and others can be freely adjusted to customize the agents' behaviors.
 
