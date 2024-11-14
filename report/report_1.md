@@ -46,7 +46,12 @@ Passive Forces:
 - A dragging force, acting in the opposite direction of the agent's velocity, which simulates friction or resistance: $F_d$
 - A repulsive force between agents in contact: $F_a$
 
-Each timestep, the simulation updates the agents' positions and velocities based on the sum of forces acting on them. These can be summed up as:
+Active forces             |  Passive forces
+:-------------------------:|:-------------------------:
+<img src="agent_active.png" width="50%"> | <img src="agent_passive.png" width="50%">
+
+Each timestep, the simulation updates the agents' positions and velocities based on the sum of forces acting on them.  
+These can be summed up as:  
 
 $$ \dot{x} = v $$  
 $$ \dot{v} = \frac{ha_F + F_d + F_a}{m} $$  
@@ -56,10 +61,8 @@ Where:
 - $x \in \mathbb{R}^2$ is the agent's position,
 - $v \in \mathbb{R}^2$ is the agent's velocity,
 - $\theta \in [-\pi, \pi]$ is the agent's heading angle,
-- $h \in \mathbb{R}^2$ is the unit vector representing the agent's heading direction, calculated as $h = [\cos(\theta), \sin(\theta)]^T$ (with $||h|| = 1$),
-- $m$ is the agent's mass.
-
-Various parameters such as agent masses, drag coefficient, stiffness coefficient, maximum forward acceleration, rotational acceleration, timestep duration, and others can be freely adjusted to customize the agents' behaviors.
+- $h \in \mathbb{R}^2$ is the unit vector representing the agent's heading direction, calculated as $h = [\cos(\theta), \sin(\theta)]^T$,
+- $m \in \mathbb{R}$ is the agent's mass.
 
 To align the simulation with ant-like movement rather than the smooth, bird-like flight patterns of the original framework, several parameters will require significant adjustments. In their current settings—such as drag coefficient, stiffness coefficient, maximum forward acceleration, and rotational acceleration—the parameters are optimized for smooth, continuous paths with limited turning sharpness and no halting, resembling bird flight. However, to better emulate the more abrupt, flexible movement characteristic of ants in a 2D bird's-eye view, we will modify these parameters. Specifically, we’ll increase rotational flexibility, reduce constraints on movement continuity, and adjust stopping behaviors to allow agents more freedom in directional shifts and pauses.
 
