@@ -3,7 +3,7 @@
 
 ## Introduction
 
-## Related work
+### Related work
 
 In the article \textbf{Predator–prey survival pressure is sufficient to evolve swarming behaviors}\cite{li2023predator} the authors employ a simple reinforcement learning (RL) approach to model predator and prey behaviours. The prey agents receive rewards based on their role; predator agents receive rewards if they successfully catch prey, while the prey receives rewards for staying alive. This differs drastically from other behaviour modelling approaches, as the authors refrain from handcrafting any drives to make the model exhibit the expected behaviour, which many traditional models do. A problem with traditional approaches is that agents based on static handcrafted rules often fail to capture the dynamic nature and strategies of the biological world. Reinforcement learning addresses this issue nicely, since it only presents rewards that encourage or discourage certain behaviours. The authors, using a predator-prey coevolution framework based on cooperative–competitive multiagent RL. They found, that such an approach is sufficient for a rich diversity of emergent behaviours to evolve. They noticed flocking and swarming behaviours developing in prey agents, while predators started employing dispersion tactics, confusion and marginal predation phenomena. The results of the study offer useful insights into how different group behaviours can be modelled using a simple RL approach. We aim to use said approach to model disease spread, by modifying the agents and the rewards they will receive.
 
