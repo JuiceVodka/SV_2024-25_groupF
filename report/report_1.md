@@ -26,7 +26,45 @@ The paper also highlihts that low-level exposure can be beneficial. Later improv
 ### Information exchange
 At the start, information exchange will be a simple reward, where agents will be simply rewarded for interacting with other agents. Potential improvements could include a more nuanced approach to information exchange, where agents would also be exchanging resources or other benefits. This could be modeled as a form of cooperation, where agents work together to achieve a common goal.
 
-### Reinforcement learning
+### Simulation  
+
+#### Environment
+Similar to \cite{li2023predator}, we established a simple physics-based simulation environment where the agents can interact. The environment is a two-dimensional continuous space with periodic boundary conditions, meaning that when an agent crosses one edge of the square environment, it reappears on the opposite side with the same velocity.
+
+#### Agent dynamics
+Agents are depicted as circles with a short line segment indicating their heading direction. The forces acting on an agent include both active (controllable) and passive (inherent) forces:
+
+Active Forces (Agent's Actions):
+- A forward movement force aligned with the agent's current heading: $$a_F$$
+- A rotational force to adjust the agent's heading direction: $$a_R$$
+
+Passive Forces:
+- A dragging force, acting in the opposite direction of the agent's velocity, which simulates friction or resistance: $$F_d$$
+- A repulsive force between agents in contact: $$F_a$$
+
+Each timestep, the simulation updates the agents' positions and velocities based on the sum of forces acting on them. These can be summed up as:
+
+$$
+\dot{x} = v
+$$  
+
+$$
+\dot{v} = \frac{ha_F + F_d + F_a}{m}
+$$  
+
+$$
+\dot{\theta} = a_R
+$$  
+
+Where:
+- $$x \in \mathbb{R}^2$$ is the agent's position,
+- $$v \in \mathbb{R}^2$$ is the agent's velocity,
+- $$\theta \in [-\pi, \pi]$$ is the agent's heading angle,
+- $$h \in \mathbb{R}^2$$ is the unit vector representing the agent's heading direction, calculated as $$h = [\cos(\theta), \sin(\theta)]^T$$ (with $$||h|| = 1$$),
+- $$m$$ is the agent's mass.
+
+Various parameters such as agent masses, drag coefficient, stiffness coefficient, maximum forward acceleration, rotational acceleration, timestep duration, and others can be freely adjusted to customize the agents' behaviors.
+
 
 ### Model performance measures
 To see if any social distancing patterns emerge, we will transform the agent interactions into a network and analyze the network structure, as shown in *\cite{Stroeymeyt2018}*. We will look at network statistics that affect disease transmission, such as modularity (-), clustering (-), network efficiency (+) and degree centrality (+). We will also measure the average distance between agents, which would indicate that the agents are avoiding each other. First, these will be measured in a network before a pathogen is introducet to see the passive social distancing. Then we will introduce the pathogen and see how the network changes.
