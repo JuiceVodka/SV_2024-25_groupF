@@ -21,10 +21,11 @@ Our goal is to explore whether a basic policy can lead to the evolution of known
 
 ## Roadmap
 ### First Report - 15. 11. 2024: 
-- Proper review of the use of RL in Collective Behavior
-- Review the referenced articles to gain a clearer understanding of our methodology
-- Decide on an ML library that supports RL and build a basic framework for simulations
-- Code basic "dot" agents (movement + interactions through collisions)
+- ~~Proper review of the use of RL in Collective Behavior~~
+- ~~Review the referenced articles to gain a clearer understanding of our methodology~~
+- ~~Decide on an ML library that supports RL and build a basic framework for simulations~~
+- ~~Code basic "dot" agents (movement + interactions through collisions)~~
+- refine report before deadline
 
 ### Second Report - 6. 12. 2024:
 - Refine our methodology based on the first report
