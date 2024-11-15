@@ -11,6 +11,8 @@ The intricacies of disease spread and the social distancing behaviours that emer
 
 Valéria Romano et al. explain, that social distancing in itself is not a sufficient strategy to limit disease spread, as members of a population have a innate need for information transfer, which brings its own benefits to subjects engaging in information exchange. The article \textbf{tradeoff between information and pathogen transmission in animal societies}\cite{romano2022tradeoff} describes the mechanisms underlying behaviour and maintenance of individual relationships when the threat of disease spread is present. They outline the evolutionary mechanism of social transmission and present evidence that network plasticity is a result of individuals navigating between costs and benefits of social relationships. The tradeoffs described in the article can provide useful insights for modelling disease spread in populations.
 
+These studies offer valuable frameworks and insights into behavior modeling, demonstrating how agents adaptively respond to environmental pressures. Leveraging these foundational approaches, our work will employ a reinforcement learning model that integrates social distancing behaviors to understand the complexities of disease spread and agent interaction.
+
 ## Methods
 
 ### Problem definition
@@ -25,17 +27,11 @@ These complex behavioral adjustments will be incorporated into a reinforcement l
 
 The paper also highlights that low-level exposure can be beneficial. Later improvements to the model could include a more nuanced approach to the rewards and penalties associated with different levels of exposure, and the possibility for an ant to develop immunity to the pathogen through active immunization. This would allow for a more detailed exploration of the trade-offs between information exchange and pathogen transmission.
 
-### Basic Reward Policy
-Our current plan for a reward policy that will produce social distancing patterns in agents behavior is fully based on agent interaction. We plan to promote social behavior by rewarding them based on the number of near-by agents, which should result in agents grouping up. Social distancing will be promoted by penalizing healthy agents for being near infected ones and vice versa. Specific reward and penalty values will be determined as we start experimenting.
-
-We plan to start with this simple reward policy, before scaling the simulation complexity with a more nuanced agent interactions e.g., where agents would also be exchanging resources or other benefits. This could be modeled as a form of cooperation, where agents work together to achieve a common goal.
-### Simulation  
-
-#### Environment
+### Simulation Environment
 The simulation framework used in this study is based on the multi-agent RL environment developed in Li et al., 2023 \cite{li2023predator}. The environment is a two-dimensional continuous space with periodic boundary conditions, meaning that when an agent crosses one edge of the square environment, it reappears on the opposite side with the same velocity.
 
 We plan to adapt the framework for our own needs, which will mainly include changing how agents perceive the environment as we need to include the health status of agents, what happens when agents are close by (possibility of pathogen transmission) and the reward policy used to train the model. In this way we don't have to waste time building our own framework and can invest more time experimenting with different reward policies.
-#### Agent Dynamics
+### Agent Dynamics
 Agents are depicted as circles with a short line segment indicating their heading direction. The forces acting on an agent include both active (controllable) and passive (inherent) forces:
 
 Active Forces (Agent's Actions):
@@ -66,6 +62,11 @@ Where:
 
 To align the simulation with ant-like movement rather than the smooth, bird-like flight patterns of the original framework, several parameters will require significant adjustments. In their current settings—such as drag coefficient, stiffness coefficient, maximum forward acceleration, and rotational acceleration—the parameters are optimized for smooth, continuous paths with limited turning sharpness and no halting, resembling bird flight. However, to better emulate the more abrupt, flexible movement characteristic of ants in a 2D bird's-eye view, we will modify these parameters. Specifically, we’ll increase rotational flexibility, reduce constraints on movement continuity, and adjust stopping behaviors to allow agents more freedom in directional shifts and pauses.
 
+### Basic Reward Policy
+Our current plan for a reward policy that will produce social distancing patterns in agents behavior is fully based on agent interaction. We plan to promote social behavior by rewarding them based on the number of near-by agents, which should result in agents grouping up. Social distancing will be promoted by penalizing healthy agents for being near infected ones and vice versa. Specific reward and penalty values will be determined as we start experimenting.
+
+We plan to start with this simple reward policy, before scaling the simulation complexity with a more nuanced agent interactions e.g., where agents would also be exchanging resources or other benefits. This could be modeled as a form of cooperation, where agents work together to achieve a common goal.
+
 ### Model performance measures
 To see if any social distancing patterns emerge, we will transform the agent interactions into a network and analyze the network structure, as shown in *\cite{Stroeymeyt2018}*. We will look at network statistics that affect disease transmission, such as modularity (-), clustering (-), network efficiency (+) and degree centrality (+). We will also measure the average distance between agents, which would indicate that the agents are avoiding each other. First, these will be measured in a network before a pathogen is introducet to see the passive social distancing. Then we will introduce the pathogen and see how the network changes.
 
@@ -74,7 +75,19 @@ Other than that, emergent social distancing behavior should also be quite obviou
 ## Results
 No experiments have been run so far, so there are no results to showcase yet.
 
-## Discussion
-No results to discuss or conclude yet.
+## Discussion and Future Work
+As we have not yet obtained results, this section will outline our immediate plans and objectives leading up to the second report deadline.
+
+Our primary goal is to adapt the existing reinforcement learning (RL) framework to align with our modeling objectives. This will involve the following steps:
+
+1. Agent Movement Adaptation: We will modify agent movement parameters to better simulate ant-like behavior. Current parameters are tuned for smoother, bird-like paths, whereas ants exhibit more abrupt, flexible movements. Adjustments will include increasing rotational flexibility, reducing constraints on movement continuity, and introducing options for sudden stops and directional changes.
+
+2. Policy Network Adjustment: We plan to reconfigure the policy network, which is the agent’s decision-making neural network. This network will be updated to process relevant environmental information and output appropriate actions for each agent based on its health status, position, and nearby agents. This customization will enable the agents to better respond to their surroundings, a necessary step for simulating disease-avoidance behaviors.
+
+3. Reward Policy Development: Our initial reward policy will be simple, rewarding agents for actions that minimize close interactions with infected agents and penalizing actions that lead to unnecessary contact. This will serve as a foundational incentive structure, helping us to examine how agents balance exploration with avoidance behaviors in a disease-prone environment.
+
+These steps will provide the basis for preliminary testing and fine-tuning. Moving forward, we plan to iterate on these adaptations and expand our focus to include more complex reward structures and interaction rules based on early observations from the simulations.
+
+This organization clarifies each objective while positioning them as concrete steps. Additionally, the phrasing of each component emphasizes the purpose behind each modification, making the progression toward expected outcomes more cohesive and actionable.
 
 ## References
