@@ -1,6 +1,0 @@
-{
-    "n_e": 50,
-    "escaper_strategy": "random",
-    "render_traj": true,
-    "traj_len": 15
-}

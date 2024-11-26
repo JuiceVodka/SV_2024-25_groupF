@@ -4,7 +4,6 @@
 import os
 import sys
 
-
 if "Apple" in sys.version:
     if "DYLD_FALLBACK_LIBRARY_PATH" in os.environ:
         os.environ["DYLD_FALLBACK_LIBRARY_PATH"] += ":/usr/lib"
@@ -98,16 +97,10 @@ class Viewer(object):
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     def close(self):
-        if self.isopen and sys.meta_path and self.window:
-            try:
-                self.window.close()
-            except Exception as e:
-                print("Exception while closing window:", e)
-            finally:
-                self.isopen = False
+        if self.isopen and sys.meta_path:
             # ^^^ check sys.meta_path to avoid 'ImportError: sys.meta_path is None, Python is likely shutting down'
-            #self.window.close()
-            #self.isopen = False
+            self.window.close()
+            self.isopen = False
 
     def window_closed_by_user(self):
         self.isopen = False
@@ -488,16 +481,10 @@ class SimpleImageViewer(object):
         self.window.flip()
 
     def close(self):
-        if self.isopen and sys.meta_path and self.window:
-            try:
-                self.window.close()
-            except Exception as e:
-                print("Exception while closing window:", e)
-            finally:
-                self.isopen = False
+        if self.isopen and sys.meta_path:
             # ^^^ check sys.meta_path to avoid 'ImportError: sys.meta_path is None, Python is likely shutting down'
-            #self.window.close()
-            #self.isopen = False
+            self.window.close()
+            self.isopen = False
 
     def __del__(self):
         self.close()
