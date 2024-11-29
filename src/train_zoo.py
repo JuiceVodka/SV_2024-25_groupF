@@ -1,10 +1,10 @@
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, DDPG
 from stable_baselines3.common.callbacks import EvalCallback
 from pps import PredatorPreySwarmEnv
 import supersuit as ss
 import json
 
-with open("configs/train_params.json") as f:
+with open("config/train_params.json") as f:
     config = json.load(f)
 
 # Create training environment
@@ -19,7 +19,7 @@ eval_env = ss.pettingzoo_env_to_vec_env_v1(eval_env)
 eval_env = ss.concat_vec_envs_v1(eval_env, 1, base_class="stable_baselines3")
 
 # define the model
-model = PPO("MlpPolicy", env, verbose=1)
+model = DDPG("MlpPolicy", env, verbose=1)
 
 # Define the evaluation callback
 eval_callback = EvalCallback(eval_env, best_model_save_path='./logs/',
@@ -33,4 +33,4 @@ total_timesteps = 600_000 #TODO get better value
 model.learn(total_timesteps=total_timesteps, callback=eval_callback)
 
 # Save the model
-model.save("testrun")
+model.save("models/testPenEx")

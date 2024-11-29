@@ -1,5 +1,5 @@
 {
-    "n_e": 10,
+    "n_e": 20,
     "escaper_strategy": "input",
     "act_dim_escaper": 2,
     "m_e": 1,
@@ -10,7 +10,7 @@
     "linVel_e_max": 0.5,
     "linAcc_e_max": 1,
     "angle_e_max": 0.5,
-    "ep_len": 200,
+    "ep_len": 500,
 
     "is_periodic": true,
     "L": 1,

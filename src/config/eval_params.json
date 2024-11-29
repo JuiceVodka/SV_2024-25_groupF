@@ -10,7 +10,7 @@
     "linVel_e_max": 0.5,
     "linAcc_e_max": 1,
     "angle_e_max": 0.5,
-    "ep_len": 200,
+    "ep_len": 2000,
 
     "is_periodic": true,
     "L": 1,

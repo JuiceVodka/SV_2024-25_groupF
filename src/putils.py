@@ -27,7 +27,7 @@ def get_mass( m_e, n_e):
     return masses
 
 
-def get_focused(Pos, Vel, norm_threshold, width, remove_self):
+def get_focused(Pos, Vel, Inf, norm_threshold, width, remove_self):
     norms = np.sqrt( Pos[0,:]**2 + Pos[1,:]**2 )
     sorted_seq = np.argsort(norms)    
     Pos = Pos[:, sorted_seq]   
@@ -40,10 +40,12 @@ def get_focused(Pos, Vel, norm_threshold, width, remove_self):
     Vel = Vel[:, sorted_seq]
     target_Pos = np.zeros( (2, width) )
     target_Vel = np.zeros( (2, width) )
+    target_Infect = np.zeros( (width) )
     until_idx = np.min( [Pos.shape[1], width] )
     target_Pos[:, :until_idx] = Pos[:, :until_idx] 
     target_Vel[:, :until_idx] = Vel[:, :until_idx]
-    return target_Pos, target_Vel   
+    target_Infect[:until_idx] = Inf[:until_idx]
+    return target_Pos, target_Vel, target_Infect
 
 def get_dist_b2b(positions, L, is_periodic, sizes):
     """

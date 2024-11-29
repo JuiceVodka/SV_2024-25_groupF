@@ -58,7 +58,12 @@ class PredatorPreySwarmEnv(ParallelEnv):
         self._m = get_mass(self._m_e, self._n_e)  
         self._size, self._sizes = get_sizes(self._size_e, self._n_e)  
 
+        self.infected = {agent:False for agent in list(range(self._n_e))}
+        for i in np.random.choice(self.possible_agents, int(self._n_e/4)):
+            self.infected[i] = True
+
         self.metrics_in_info = metrics_in_info
+        self.interactions = np.zeros((self._n_e, self._n_e), dtype=int)
         
     def observation_space(self, agent):
         return self.observation_spaces[agent]
@@ -95,6 +100,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
         self._theta = np.pi * np.random.uniform(-1,1, (1, self._n_e))
         self._heading = np.concatenate((np.cos(self._theta), np.sin(self._theta)), axis=0)
         self.obs = self._get_obs()
+        self.interactions = np.zeros((self._n_e, self._n_e), dtype=int)
         return self.obs, self._get_info()
 
 
@@ -106,17 +112,19 @@ class PredatorPreySwarmEnv(ParallelEnv):
             relPos_e2e = self._p - self._p[:,[i]]
             if self._is_periodic: relPos_e2e = make_periodic(relPos_e2e, self._L)
             relVel_e2e = self._heading - self._heading[:,[i]]
-            relPos_e2e, relVel_e2e = get_focused(relPos_e2e, relVel_e2e, self._FoV_e, self._topo_n_e2e, True)  
+            infected = np.array([self.infected[j] for j in range(self._n_e)])
+            relPos_e2e, relVel_e2e, infected = get_focused(relPos_e2e, relVel_e2e, infected, self._FoV_e, self._topo_n_e2e, True)  
 
             obs_escaper_pos = np.concatenate((self._p[:, [i]], relPos_e2e), axis=1)
             obs_escaper_vel = np.concatenate((self._dp[:, [i]], relVel_e2e), axis=1)
-            obs_escaper = np.concatenate((obs_escaper_pos, obs_escaper_vel), axis=0) 
+            obs_escaper_infected = np.concatenate((np.array([self.infected[i]]), infected), axis=0).reshape(1,self._topo_n_e2e+1)
+            obs_escaper = np.concatenate((obs_escaper_pos, obs_escaper_vel, obs_escaper_infected), axis=0) 
             
             self.obs[:self.obs_dim_escaper-2] = obs_escaper.T.reshape(-1)        
             self.obs[self.obs_dim_escaper-2:] = self._heading[:,i] # Own heading
             
             observations[i] = self.obs
-            
+
         return observations
 
     def _get_reward(self, a):        
@@ -125,8 +133,12 @@ class PredatorPreySwarmEnv(ParallelEnv):
         for i in range(self._n_e):
             for j in range(i):
                 if self._is_collide_b2b[i,j]:
-                    reward[i] = +1
-                    reward[j] = +1
+                    if self.infected[i] != self.infected[j]:
+                        reward[i] += -1
+                        reward[j] += -1
+                        
+                    reward[i] += 1
+                    reward[j] += 1
         return reward
     
     def _get_info(self):
@@ -202,8 +214,12 @@ class PredatorPreySwarmEnv(ParallelEnv):
             for i in range(self._n_e):
                 if self._render_traj: self.trajrender.append( rendering.Traj( list(zip(self._p_traj[:,0,i], self._p_traj[:,1,i])),  False) )
                 agents.append( rendering.make_unicycle(self._size_e) )
-                agents[i].set_color_alpha(0, 0.333, 0.778, 1)
-                if self._render_traj: self.trajrender[i].set_color_alpha(0, 0.333, 0.778, 0.5)
+                if self.infected[i]:
+                    agents[i].set_color_alpha(0.778, 0.333, 0, 1)
+                    if self._render_traj: self.trajrender[i].set_color_alpha(0.778, 0.333, 0, 0.5)
+                else:
+                    agents[i].set_color_alpha(0, 0.333, 0.778, 1)
+                    if self._render_traj: self.trajrender[i].set_color_alpha(0, 0.333, 0.778, 0.5)
                 self.tf.append( rendering.Transform() )
                 agents[i].add_attr(self.tf[i])
                 self.viewer.add_geom(agents[i])
@@ -222,7 +238,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self.viewer = None
     
     def _get_observation_space(self):
-        self.obs_dim_escaper = ( 4 * self._topo_n_e2e ) + 6
+        self.obs_dim_escaper = ( 5 * self._topo_n_e2e ) + 7
         observation_space = spaces.Box(low=-np.inf, high=+np.inf, shape=(self.obs_dim_escaper, ), dtype=np.float32)
         return observation_space
 
@@ -239,29 +255,41 @@ class PredatorPreySwarmEnv(ParallelEnv):
         return G
     
     def compute_metrics(self):
-        G = self.env2nx()
-        min_dist = 0.2 # TODO find reasonable value
-        G_ = G.copy()
-        for edge in G.edges(data=True):
-            if edge[2]['distance'] > min_dist:
-                G_.remove_edge(edge[0], edge[1])
+        # G = self.env2nx()
+        min_dist = 0.07 #self._size_e # TODO find reasonable value
+        # G_ = G.copy()
+        for i in range(self._n_e):
+            for j in range(i):
+                if self._d_b2b_center[i,j] < min_dist:
+                    self.interactions[i, j] += 1
+
+        norm_interactions = self.interactions / np.max((np.max(self.interactions), 1))
+        G_ = nx.Graph().to_undirected()
+        G_.add_nodes_from(list(range(self._n_e)))
+        for i in range(self._n_e):
+            for j in range(i):
+                if norm_interactions[i, j] > 0.01:
+                    G_.add_edge(i, j, weight=norm_interactions[i, j])
         
         # METRICS CONSIDERED IN PAPER ########################################
         # md = ... # modularity between infected and non infected nodes
-        ac = nx.average_clustering(G_)
+        ac = nx.average_clustering(G_, weight='weight')
         dens = nx.density(G_)
+        md = nx.algorithms.community.quality.modularity(G_, [{i for i in range(self._n_e) if self.infected[i]}, {i for i in range(self._n_e) if not self.infected[i]}])
         # diam = ... # network diameter, but network is not connected, adjust
         ne = nx.global_efficiency(G_)
         # dc = nx.betweenness_centrality(G_) # or some other centrality measure, but for whole network
+        dc = nx.degree_centrality(G_)
+        avg_dc = np.mean(list(dc.values()))
         # as = ... # assortativity, node specific
         ######################################################################
         
-        return {'average_clustering': ac, 'network_efficiency': ne, 'density': dens}
+        return {'average_clustering': ac, 'network_efficiency': ne, 'density': dens, 'modularity': md, 'average_degree_centrality': avg_dc}
 
 if __name__ == '__main__':
     # parse json file
     import json
-    with open('configs/env_params.json') as f:
+    with open('config/env_params.json') as f:
         config = json.load(f)
 
 
