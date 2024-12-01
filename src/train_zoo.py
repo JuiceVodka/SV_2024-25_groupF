@@ -4,7 +4,7 @@ from pps import PredatorPreySwarmEnv
 import supersuit as ss
 import json
 
-with open("configs/train_params.json") as f:
+with open("config/train_params.json") as f:
     config = json.load(f)
 
 # Create training environment
@@ -33,4 +33,4 @@ total_timesteps = 600_000 #TODO get better value
 model.learn(total_timesteps=total_timesteps, callback=eval_callback)
 
 # Save the model
-model.save("testrun")
+model.save("testrun_observe2")

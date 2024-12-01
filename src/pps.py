@@ -56,7 +56,9 @@ class PredatorPreySwarmEnv(ParallelEnv):
         self.observation_spaces = {agent: self._get_observation_space() for agent in self.possible_agents}
         self.action_spaces = {agent: self._get_action_space() for agent in self.possible_agents}
         self._m = get_mass(self._m_e, self._n_e)  
-        self._size, self._sizes = get_sizes(self._size_e, self._n_e)  
+        self._size, self._sizes = get_sizes(self._size_e, self._n_e)
+
+        self.infected = np.zeros(self._n_e)
 
         self.metrics_in_info = metrics_in_info
         
@@ -95,6 +97,11 @@ class PredatorPreySwarmEnv(ParallelEnv):
         self._theta = np.pi * np.random.uniform(-1,1, (1, self._n_e))
         self._heading = np.concatenate((np.cos(self._theta), np.sin(self._theta)), axis=0)
         self.obs = self._get_obs()
+
+        self.infected = np.zeros(self._n_e)
+        random_indices = np.random.choice(self._n_e, int(self._n_e/10), replace=False)
+        self.infected[random_indices] = 1
+
         return self.obs, self._get_info()
 
 
@@ -104,15 +111,24 @@ class PredatorPreySwarmEnv(ParallelEnv):
         for i in range(self._n_e):
             self.obs = np.zeros(self.observation_space(i).shape)   
             relPos_e2e = self._p - self._p[:,[i]]
+            am_infected = self.infected[i]
             if self._is_periodic: relPos_e2e = make_periodic(relPos_e2e, self._L)
-            relVel_e2e = self._heading - self._heading[:,[i]]
-            relPos_e2e, relVel_e2e = get_focused(relPos_e2e, relVel_e2e, self._FoV_e, self._topo_n_e2e, True)  
+            relVel_e2e = self._heading - self._heading[:,[i]] #relative velocity of all other agents
+            relPos_e2e, relVel_e2e, rel_infected = get_focused(relPos_e2e, relVel_e2e, self.infected, self._FoV_e, self._topo_n_e2e, True) #relative position of 6 nearest
 
             obs_escaper_pos = np.concatenate((self._p[:, [i]], relPos_e2e), axis=1)
             obs_escaper_vel = np.concatenate((self._dp[:, [i]], relVel_e2e), axis=1)
-            obs_escaper = np.concatenate((obs_escaper_pos, obs_escaper_vel), axis=0) 
-            
-            self.obs[:self.obs_dim_escaper-2] = obs_escaper.T.reshape(-1)        
+            #print(self.infected.shape)
+            #print(rel_infected.shape)
+            obs_escaper_infect = np.append(self.infected[i], rel_infected)#np.concatenate((self.infected[i], rel_infected), axis=1)
+            #print(obs_escaper_pos.shape)
+            #print(obs_escaper_vel.shape)
+            #print(obs_escaper_infect.shape)
+            #print(self.obs.shape)
+
+            obs_escaper = np.concatenate((obs_escaper_pos, obs_escaper_vel), axis=0)
+
+            self.obs[:self.obs_dim_escaper-2] = np.concatenate((obs_escaper.T.reshape(-1), obs_escaper_infect))
             self.obs[self.obs_dim_escaper-2:] = self._heading[:,i] # Own heading
             
             observations[i] = self.obs
@@ -121,12 +137,31 @@ class PredatorPreySwarmEnv(ParallelEnv):
 
     def _get_reward(self, a):        
         reward = {agent:0 for agent in list(range(self._n_e))}
-        # check if the agents are colliding, if so, give a negative reward to both agents
+        # check if the agents are colliding, if so give them a reward
+        #if the agents are coliding, and one is infected, give the other a big negative reward
         for i in range(self._n_e):
-            for j in range(i):
+            for j in range(self._n_e):
                 if self._is_collide_b2b[i,j]:
-                    reward[i] = +1
-                    reward[j] = +1
+                    if self.infected[j] == 1 and self.infected[i] == 0: #i is infected, j is not
+                        transmission = np.random.choice([0,1], p=[0.1,0.9])
+                        if transmission == 1: #give negative reward to other agent
+                            #self.infected[j] = 1
+                            reward[i] -= 100
+                            #print("INFECTION")
+
+                        else:
+                            reward[i] += 1
+                    elif self.infected[j] == 1 and self.infected[i] == 1:
+                        reward[i] += 1
+                    elif self.infected[j] == 0 and self.infected[i] == 0:
+                        #still give reward for collisions
+                        reward[i] += 1
+        #reward_sum = sum(list(reward.values()))
+        #print(list(reward.values()))
+        #print(reward_sum)
+        #if reward_sum != 0:
+        #    reward_norm = {agent: reward[agent]/reward_sum for agent in reward.keys()}
+        #    return reward_norm
         return reward
     
     def _get_info(self):
@@ -202,7 +237,10 @@ class PredatorPreySwarmEnv(ParallelEnv):
             for i in range(self._n_e):
                 if self._render_traj: self.trajrender.append( rendering.Traj( list(zip(self._p_traj[:,0,i], self._p_traj[:,1,i])),  False) )
                 agents.append( rendering.make_unicycle(self._size_e) )
-                agents[i].set_color_alpha(0, 0.333, 0.778, 1)
+                if self.infected[i] == 1:
+                    agents[i].set_color_alpha(0.778, 0.333, 0, 1)
+                else:
+                    agents[i].set_color_alpha(0, 0.333, 0.778, 1)
                 if self._render_traj: self.trajrender[i].set_color_alpha(0, 0.333, 0.778, 0.5)
                 self.tf.append( rendering.Transform() )
                 agents[i].add_attr(self.tf[i])
@@ -222,7 +260,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self.viewer = None
     
     def _get_observation_space(self):
-        self.obs_dim_escaper = ( 4 * self._topo_n_e2e ) + 6
+        self.obs_dim_escaper = ( 5 * self._topo_n_e2e ) + 7
         observation_space = spaces.Box(low=-np.inf, high=+np.inf, shape=(self.obs_dim_escaper, ), dtype=np.float32)
         return observation_space
 
@@ -261,7 +299,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
 if __name__ == '__main__':
     # parse json file
     import json
-    with open('configs/env_params.json') as f:
+    with open('config/env_params.json') as f:
         config = json.load(f)
 
 
