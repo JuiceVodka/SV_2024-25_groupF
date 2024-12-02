@@ -31,7 +31,9 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self._is_periodic = True
             self._L = 1
             self._k_ball = 50 
-            self._c_aero = 2        
+            self._c_aero = 2  
+            self._k_wall = 100
+            self._c_wall = 5
             self._dt = 0.1
             self._n_frames = 1  
 
@@ -77,7 +79,6 @@ class PredatorPreySwarmEnv(ParallelEnv):
             
         self.agents = self.possible_agents[:]
         self.timesteps_left = self._ep_len
-
         max_size = np.max(self._size)
         max_respawn_times = 100
         for respawn_time in range (max_respawn_times):
@@ -150,13 +151,18 @@ class PredatorPreySwarmEnv(ParallelEnv):
             for i in range(self._n_e):
                 for j in range(i):
                     delta = self._p[:,j]-self._p[:,i]
-                    delta = make_periodic(delta, self._L)
+                    if self._is_periodic:
+                        delta = make_periodic(delta, self._L)
                     dir = delta / self._d_b2b_center[i,j]
                     sf_b2b_all[2*i:2*(i+1),j] = self._is_collide_b2b[i,j] * self.d_b2b_edge[i,j] * self._k_ball * (-dir)
                     sf_b2b_all[2*j:2*(j+1),i] = - sf_b2b_all[2*i:2*(i+1),j]  
 
             sf_b2b = np.sum(sf_b2b_all, axis=1, keepdims=True).reshape(self._n_e,2).T 
-
+            if self._is_periodic == False:
+                self.d_b2w, self.is_collide_b2w = get_dist_b2w(self._p, self._size, self._L)
+                sf_b2w = np.array([[1, 0, -1, 0], [0, -1, 0, 1]]).dot(self.is_collide_b2w * self.d_b2w) * self._k_wall   
+                df_b2w = np.array([[-1, 0, -1, 0], [0, -1, 0, -1]]).dot(self.is_collide_b2w*np.concatenate((self._dp, self._dp), axis=0))  *  self._c_wall   
+            
             if self._escaper_strategy == 'input':
                 pass
             elif self._escaper_strategy == 'static':
@@ -171,12 +177,16 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self._theta = normalize_angle(self._theta)
             self._heading = np.concatenate((np.cos(self._theta), np.sin(self._theta)), axis=0) 
             u = a[1] * self._heading 
-            F = self._sensitivity * u  + sf_b2b - self._c_aero*self._dp
+            if self._is_periodic:
+                F = self._sensitivity * u  + sf_b2b - self._c_aero*self._dp
+            else:
+                F = self._sensitivity * u  + sf_b2b - self._c_aero*self._dp + sf_b2w + df_b2w 
             self._ddp = F/self._m
             self._dp += self._ddp * self._dt
             self._dp = np.clip(self._dp, -self._linVel_e_max, self._linVel_e_max)
             self._p += self._dp * self._dt
-            self._p = make_periodic(self._p, self._L)
+            if self._is_periodic:
+                self._p = make_periodic(self._p, self._L)
             if self._render_traj == True:
                 self._p_traj = np.concatenate( (self._p_traj[1:,:,:], self._p.reshape(1, 2, self._n_e)), axis=0 )
         
@@ -186,7 +196,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
         else:
             self.timesteps_left -= 1      
             truncateds = {agent:False for agent in list(range(self._n_e))}
-
+    
         self.obs = self._get_obs()
         return self.obs, self._get_reward(a), self.terminateds, truncateds, self._get_info()
 
