@@ -14,17 +14,17 @@ class PredatorPreySwarmEnv(ParallelEnv):
         if config is None:
             print('Using default config')
             # agent parameters
-            self._n_e = 50
+            self._n_e = 250
             self._escaper_strategy = 'input'
             self._act_dim_escaper = 2
             self._m_e = 1
             self._size_e = 0.035 
             self._topo_n_e2e = 6
             self._FoV_e = 5
-            self._sensitivity = 1 
-            self._linVel_e_max = 0.5
+            self._sensitivity = 1
+            self._linVel_e_max = 0
             self._linAcc_e_max = 1
-            self._angle_e_max = 0.5
+            self._angle_e_max = 2
             self._ep_len = 200
             
             # environment parameters
@@ -33,7 +33,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self._k_ball = 50 
             self._c_aero = 2        
             self._dt = 0.1
-            self._n_frames = 1  
+            self._n_frames = 10  
 
             # rendering parameters
             self._render_traj = True
@@ -124,9 +124,12 @@ class PredatorPreySwarmEnv(ParallelEnv):
         # check if the agents are colliding, if so, give a negative reward to both agents
         for i in range(self._n_e):
             for j in range(i):
-                if self._is_collide_b2b[i,j]:
+                if self._is_collide_b2b[i,j]: #TODO: simply elif by checking whether agents i or j are sick
                     reward[i] = +1
                     reward[j] = +1
+                # if one is sick and they collide give both -1
+                # if both are healthy give bot +1
+                
         return reward
     
     def _get_info(self):
@@ -137,12 +140,12 @@ class PredatorPreySwarmEnv(ParallelEnv):
         else:
             return {agent:{} for agent in list(range(self._n_e))}
     
-    def step(self, a):        
+    def step_old(self, a):        
         # a is {agent: [a1, a2]}
         # but need it to be shape (2, n_e)    
         a = np.array([a[agent] for agent in self.agents]).T
         for _ in range(self._n_frames): 
-            a[0] *= self._angle_e_max
+            a[0] *= self._angle_e_max # heading
             a[1] = (self._linAcc_e_max-self._linAcc_e_min)/2 * a[1] + (self._linAcc_e_max+self._linAcc_e_min)/2 
 
             self._d_b2b_center, self.d_b2b_edge, self._is_collide_b2b = get_dist_b2b(self._p, self._L, self._is_periodic, self._sizes)
@@ -155,30 +158,31 @@ class PredatorPreySwarmEnv(ParallelEnv):
                     sf_b2b_all[2*i:2*(i+1),j] = self._is_collide_b2b[i,j] * self.d_b2b_edge[i,j] * self._k_ball * (-dir)
                     sf_b2b_all[2*j:2*(j+1),i] = - sf_b2b_all[2*i:2*(i+1),j]  
 
-            sf_b2b = np.sum(sf_b2b_all, axis=1, keepdims=True).reshape(self._n_e,2).T 
+            # sf_b2b = np.sum(sf_b2b_all, axis=1, keepdims=True).reshape(self._n_e,2).T 
 
             if self._escaper_strategy == 'input':
                 pass
-            elif self._escaper_strategy == 'static':
-                a = np.zeros((self._act_dim_escaper, self._n_e))
-            elif self._escaper_strategy == 'random':
-                a = np.random.uniform(-1,1, (self._act_dim_escaper, self._n_e)) 
-                a[0] *= self._angle_e_max
-                a[1] = (self._linAcc_e_max-self._linAcc_e_min)/2 * a[1] + (self._linAcc_e_max+self._linAcc_e_min)/2 
-            else:
-                print('Wrong in Step function')
+            #elif self._escaper_strategy == 'static':
+            #    a = np.zeros((self._act_dim_escaper, self._n_e))
+            #elif self._escaper_strategy == 'random':
+            #    a = np.random.uniform(-1,1, (self._act_dim_escaper, self._n_e)) 
+            #    a[0] *= self._angle_e_max
+            #    a[1] = (self._linAcc_e_max-self._linAcc_e_min)/2 * a[1] + (self._linAcc_e_max+self._linAcc_e_min)/2 
+            #else:
+            #    print('Wrong in Step function')
+
             self._theta += a[0]
             self._theta = normalize_angle(self._theta)
             self._heading = np.concatenate((np.cos(self._theta), np.sin(self._theta)), axis=0) 
             u = a[1] * self._heading 
-            F = self._sensitivity * u  + sf_b2b - self._c_aero*self._dp
+            F = self._sensitivity * u #  + sf_b2b - self._c_aero*self._dp
             self._ddp = F/self._m
             self._dp += self._ddp * self._dt
             self._dp = np.clip(self._dp, -self._linVel_e_max, self._linVel_e_max)
             self._p += self._dp * self._dt
             self._p = make_periodic(self._p, self._L)
             if self._render_traj == True:
-                self._p_traj = np.concatenate( (self._p_traj[1:,:,:], self._p.reshape(1, 2, self._n_e)), axis=0 )
+                self._p_traj = np.concatenate((self._p_traj[1:,:,:], self._p.reshape(1, 2, self._n_e)), axis=0)
         
         if self.timesteps_left <= 0:
             self.agents = []
@@ -189,6 +193,62 @@ class PredatorPreySwarmEnv(ParallelEnv):
 
         self.obs = self._get_obs()
         return self.obs, self._get_reward(a), self.terminateds, truncateds, self._get_info()
+    
+    def step(self, a):
+        """
+        Perform a single step in the environment, updating the positions and handling collisions.
+        Simplified for ant movement with no external forces except collision forces.
+        """
+        # Convert actions dictionary to a matrix (2, n_e)
+        a = np.array([a[agent] for agent in self.agents]).T
+        for _ in range(self._n_frames): 
+            # Apply heading changes
+            a[0] *= self._angle_e_max  # Scale heading changes to the maximum allowed
+            self._theta += a[0]        # Update heading angles
+            self._theta = normalize_angle(self._theta)  # Keep angles within [-pi, pi]
+            self._heading = np.concatenate((np.cos(self._theta), np.sin(self._theta)), axis=0)  # Compute new headings
+
+            # Apply movement force
+            a[1] = (self._linAcc_e_max - self._linAcc_e_min) / 2 * a[1] + (self._linAcc_e_max + self._linAcc_e_min) / 2
+            u = a[1] * self._heading  # Calculate movement vector based on force and heading
+
+            # Update positions
+            self._p += self._sensitivity * u * self._dt  # Simple update without acceleration or drag
+            self._p = make_periodic(self._p, self._L)  # Keep positions within bounds (periodic boundary)
+
+            # Detect collisions
+            self._d_b2b_center, self.d_b2b_edge, self._is_collide_b2b = get_dist_b2b(self._p, self._L, self._is_periodic, self._sizes)
+
+            # Handle collisions
+            for i in range(self._n_e):
+                for j in range(i):
+                    if self._is_collide_b2b[i, j]:  # If collision detected
+                        # Compute displacement vector to separate agents
+                        delta = self._p[:, j] - self._p[:, i]
+                        delta = make_periodic(delta, self._L)  # Account for periodic boundaries
+                        dir = delta / self._d_b2b_center[i, j]  # Unit vector for displacement
+                        overlap = self.d_b2b_edge[i, j]  # Overlap distance
+
+                        # Adjust positions to resolve collision
+                        self._p[:, i] -= dir * overlap / 2  # Push agent i away
+                        self._p[:, j] += dir * overlap / 2  # Push agent j away
+
+            # Render trajectories if enabled
+            if self._render_traj:
+                self._p_traj = np.concatenate((self._p_traj[1:, :, :], self._p.reshape(1, 2, self._n_e)), axis=0)
+
+        # Check episode termination conditions
+        if self.timesteps_left <= 0:
+            self.agents = []
+            truncateds = {agent: True for agent in list(range(self._n_e))}
+        else:
+            self.timesteps_left -= 1
+            truncateds = {agent: False for agent in list(range(self._n_e))}
+
+        # Update observations
+        self.obs = self._get_obs()
+        return self.obs, self._get_reward(a), self.terminateds, truncateds, self._get_info()
+
 
     def render(self, mode="rgb_array"): 
         
@@ -201,9 +261,11 @@ class PredatorPreySwarmEnv(ParallelEnv):
             if self._render_traj: self.trajrender = []
             for i in range(self._n_e):
                 if self._render_traj: self.trajrender.append( rendering.Traj( list(zip(self._p_traj[:,0,i], self._p_traj[:,1,i])),  False) )
-                agents.append( rendering.make_unicycle(self._size_e) )
-                agents[i].set_color_alpha(0, 0.333, 0.778, 1)
-                if self._render_traj: self.trajrender[i].set_color_alpha(0, 0.333, 0.778, 0.5)
+                #agents.append( rendering.make_unicycle(self._size_e) )
+                agents.append( rendering.make_ant(self._size_e) )
+                # TODO: change color of sick agents
+                agents[i].set_color_alpha(0, 0, 0, 1)
+                if self._render_traj: self.trajrender[i].set_color_alpha(0, 0, 0, 0.5) #0, 0.333, 0.778, 0.5
                 self.tf.append( rendering.Transform() )
                 agents[i].add_attr(self.tf[i])
                 self.viewer.add_geom(agents[i])
@@ -261,7 +323,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
 if __name__ == '__main__':
     # parse json file
     import json
-    with open('configs/env_params.json') as f:
+    with open('config/env_params.json') as f:
         config = json.load(f)
 
 
@@ -274,6 +336,7 @@ if __name__ == '__main__':
         img = env.render(mode='rgb_array')
         # print(img.shape)
         actions = {agent: env.action_space(agent).sample() for agent in env.agents}
+        #print(actions)
         obs, rew, term, trunc, info = env.step(actions)
     env.close()
     

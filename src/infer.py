@@ -4,7 +4,7 @@ import supersuit as ss
 
 import json
 
-with open("configs/eval_params.json") as f:
+with open("config/eval_params.json") as f:
     config = json.load(f)
 
 # Create the environment
@@ -21,6 +21,7 @@ obs = env.reset()
 images = []
 for _ in range(max_ep_len):
     action, _states = model.predict(obs)
+    print(action)
     obs, rewards, dones, info = env.step(action)
     img = env.render(mode="rgb_array")
     images.append(img)

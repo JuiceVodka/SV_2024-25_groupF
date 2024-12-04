@@ -7,9 +7,9 @@
     "topo_n_e2e": 6,
     "FoV_e": 5,
     "sensitivity": 1,
-    "linVel_e_max": 0.5,
-    "linAcc_e_max": 1,
-    "angle_e_max": 0.5,
+    "linVel_e_max": 0.2,
+    "linAcc_e_max": 0.2,
+    "angle_e_max": 2,
     "ep_len": 200,
 
     "is_periodic": true,
