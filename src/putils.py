@@ -38,13 +38,14 @@ def get_focused(Pos, Vel, Inf, norm_threshold, width, remove_self):
         Pos = Pos[:,1:]  
         sorted_seq = sorted_seq[1:]                    
     Vel = Vel[:, sorted_seq]
+    Infected = Inf[sorted_seq].copy()
     target_Pos = np.zeros( (2, width) )
     target_Vel = np.zeros( (2, width) )
     target_Infect = np.zeros( (width) )
     until_idx = np.min( [Pos.shape[1], width] )
     target_Pos[:, :until_idx] = Pos[:, :until_idx] 
     target_Vel[:, :until_idx] = Vel[:, :until_idx]
-    target_Infect[:until_idx] = Inf[:until_idx]
+    target_Infect[:until_idx] = Infected[:until_idx]
     return target_Pos, target_Vel, target_Infect
 
 def get_dist_b2b(positions, L, is_periodic, sizes):
@@ -86,3 +87,41 @@ def get_dist_b2b(positions, L, is_periodic, sizes):
             is_collide_b2b[i, j] = is_collide_b2b[j, i] = dist_edge < 0
 
     return d_b2b_center, -d_b2b_edge, is_collide_b2b
+
+def get_dist_b2w(positions, sizes, L):
+    """
+    Calculate distances between agents and walls and apply repulsion if needed.
+    
+    Args:
+        positions: Array of shape (2, n_agents) with x,y coordinates
+        sizes: Array of shape (n_agents,) with agent sizes
+        L: Box size for periodic boundaries
+        
+    Returns:
+        d_b2w: Distances between agents and walls
+               Shape: (4, n_agents), order: [left, right, bottom, top]
+        is_collide_b2w: Boolean array indicating collisions
+                        Shape: (4, n_agents)
+    """
+    n_agents = positions.shape[1]
+    d_b2w = np.zeros((4, n_agents))  # 4 walls
+    is_collide_b2w = np.zeros((4, n_agents), dtype=bool)
+    # positions are in the range [-L, L] !!!
+    for i in range(n_agents):
+        # Calculate distances to walls, again from 
+        left_dist = positions[0, i] - sizes[i] + L
+        right_dist = L - positions[0, i] - sizes[i]
+        top_dist = L - positions[1, i] - sizes[i]
+        bottom_dist = positions[1, i] - sizes[i] + L
+        
+        d_b2w[0, i] = left_dist
+        d_b2w[2, i] = right_dist
+        d_b2w[1, i] = top_dist
+        d_b2w[3, i] = bottom_dist
+        
+        is_collide_b2w[0, i] = left_dist < 0
+        is_collide_b2w[2, i] = right_dist < 0
+        is_collide_b2w[1, i] = top_dist < 0
+        is_collide_b2w[3, i] = bottom_dist < 0
+    
+    return -d_b2w, is_collide_b2w
