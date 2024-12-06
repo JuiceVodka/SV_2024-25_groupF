@@ -19,6 +19,29 @@ Our current idea is to model the emergence of social distancing in response to i
 
 Our goal is to explore whether a basic policy can lead to the evolution of known social distancing patterns (e.g., in ants: [Social Network Plasticity Decreases Disease Transmission in a Eusocial Insect](https://www.science.org/doi/10.1126/science.aat4793)).
 
+## Simulation setup
+
+### Dependencies
+Just run the things below and install whatever dependencies you're missing (latest version). The only thing to note is that PyGlet requires an older version (1.5.27 works).
+
+### Test simulation environment
+Run environment without the policy model with random actions (set env parameters in `src/config/env_params.json`):
+```
+python pps.py
+```
+
+### Training the policy model
+Run training (set env parameters in `src/config/train_params.json`) - don't forget to name you're policy model in the file:
+```
+python train_zoo.py
+```
+
+### Evaluating the policy model
+Run evaluation (set parameters in `src/config/eval_params.json`) - don't forget to change the model .zip you're testing (in the file):
+```
+python infer.py
+```
+
 ## Roadmap
 ### First Report - 15. 11. 2024: 
 - ~~Proper review of the use of RL in Collective Behavior~~
