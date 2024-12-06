@@ -4,7 +4,7 @@ import supersuit as ss
 
 import json
 
-with open("configs/eval_params.json") as f:
+with open("config/eval_params.json") as f:
     config = json.load(f)
 
 # Create the environment

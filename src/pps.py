@@ -211,7 +211,8 @@ class PredatorPreySwarmEnv(ParallelEnv):
             if self._render_traj: self.trajrender = []
             for i in range(self._n_e):
                 if self._render_traj: self.trajrender.append( rendering.Traj( list(zip(self._p_traj[:,0,i], self._p_traj[:,1,i])),  False) )
-                agents.append( rendering.make_unicycle(self._size_e) )
+                #agents.append( rendering.make_unicycle(self._size_e) )
+                agents.append( rendering.make_ant(self._size_e) )
                 agents[i].set_color_alpha(0, 0.333, 0.778, 1)
                 if self._render_traj: self.trajrender[i].set_color_alpha(0, 0.333, 0.778, 0.5)
                 self.tf.append( rendering.Transform() )
@@ -271,7 +272,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
 if __name__ == '__main__':
     # parse json file
     import json
-    with open('configs/env_params.json') as f:
+    with open('config/env_params.json') as f:
         config = json.load(f)
 
 

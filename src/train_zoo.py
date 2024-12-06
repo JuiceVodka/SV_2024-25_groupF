@@ -4,7 +4,7 @@ from pps import PredatorPreySwarmEnv
 import supersuit as ss
 import json
 
-with open("configs/train_params.json") as f:
+with open("config/train_params.json") as f:
     config = json.load(f)
 
 # Create training environment

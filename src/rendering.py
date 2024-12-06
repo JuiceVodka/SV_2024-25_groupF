@@ -347,6 +347,34 @@ def make_unicycle(radius):
     geom = Compound([circ, box])
     return geom
 
+def make_ant(size):
+    # Body segments
+    head = make_circle(size * 0.3)  # Head (smallest circle)
+    thorax = make_circle(size * 0.3)  # Thorax (medium circle)
+    abdomen = make_circle(size * 0.4)  # Abdomen (largest circle)
+
+    # Position the body segments
+    head.add_attr(Transform(translation=(size * 0.6, 0)))
+    thorax.add_attr(Transform(translation=(0, 0)))
+    abdomen.add_attr(Transform(translation=(-size * 0.7, 0)))
+
+    # Legs
+    legs = []
+    leg_length = size
+    offsets = [
+        (0, -leg_length, 0, leg_length),  # Middle pair
+        (-leg_length, size, leg_length, -size),   # Top pair
+        (-leg_length, -size, leg_length, size), # Bottom pair
+    ]
+    for x1, y1, x2, y2 in offsets:
+        leg = Line(start=(x1, y1), end=(x2, y2))
+        legs.append(leg)
+
+    # Combine all parts
+    parts = [head, thorax, abdomen] + legs #phero_r
+    ant = Compound(parts)
+    return ant
+
 
 class Compound(Geom):
     def __init__(self, gs):
