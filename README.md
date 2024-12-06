@@ -28,11 +28,11 @@ Our goal is to explore whether a basic policy can lead to the evolution of known
 - ~~refine report before deadline~~
 
 ### Second Report - 6. 12. 2024:
-- Refine our methodology based on the first report
-- Adapt aganet movement so it's more aligned with ant movement
-- Change the policy neural network to include agent health status on the input
-- Start testing different reward policies aimed at emerging social distancing traits (interactions need to be sufficiently non-random and contribute to reducing pathogen flow)
-- Potentially increase the complexity of agent interactions (if necessary)
+- Refine our methodology based on the first report, write second report
+- ~~Adapt agent movement so it's more aligned with ant movement~~
+- ~~Change the policy neural network to include agent health status on the input~~
+- ~~Start testing different reward policies aimed at emerging social distancing traits (interactions need to be sufficiently non-random and contribute to reducing pathogen flow)~~
+- ~~Potentially increase the complexity of agent interactions (if necessary)~~
 
 ### Final report - 10. 1. 2025:
 - Succeed (or fail) in emulating social distancing traits
