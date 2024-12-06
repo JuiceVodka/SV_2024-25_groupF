@@ -32,9 +32,11 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self._is_periodic = True
             self._L = 1
             self._k_ball = 50 
-            self._c_aero = 2        
+            self._c_aero = 2  
+            self._k_wall = 100
+            self._c_wall = 5
             self._dt = 0.1
-            self._n_frames = 10  
+            self._n_frames = 1
 
             # rendering parameters
             self._render_traj = True
@@ -64,6 +66,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self.infected[i] = True
 
         self.metrics_in_info = metrics_in_info
+        self.interactions = np.zeros((self._n_e, self._n_e), dtype=int)
 
         self.grid_size = 20  # Size of the grid (2000x2000)
         self.X, self.Y = np.meshgrid(np.linspace(-self._L, self._L, self.grid_size), np.linspace(-self._L, self._L, self.grid_size))
@@ -112,7 +115,8 @@ class PredatorPreySwarmEnv(ParallelEnv):
         self.infected = {agent:False for agent in list(range(self._n_e))}
         for i in np.random.choice(self.possible_agents, int(self._n_e*self._part_infected)):
             self.infected[i] = True
-            
+        self.interactions = np.zeros((self._n_e, self._n_e), dtype=int)
+        
         return self.obs, self._get_info()
         
     def _dissipate_pheromones(self):
@@ -173,10 +177,9 @@ class PredatorPreySwarmEnv(ParallelEnv):
             relPos_e2e, relVel_e2e, infected = get_focused(relPos_e2e, relVel_e2e, infected, self._FoV_e, self._topo_n_e2e, True)  
 
             obs_escaper_pos = np.concatenate((self._p[:, [i]], relPos_e2e), axis=1)
-            #obs_escaper_vel = np.concatenate((self._dp[:, [i]], relVel_e2e), axis=1)
-            #print(f"pre concat: {obs_escaper_pos.shape} : {obs_escaper_pos}")
+            obs_escaper_vel = np.concatenate((self._dp[:, [i]], relVel_e2e), axis=1)
             obs_escaper_infected = np.concatenate((np.array([self.infected[i]]), infected), axis=0).reshape(1,self._topo_n_e2e+1)
-            obs_escaper = np.concatenate((obs_escaper_pos, obs_escaper_infected), axis=0) 
+            obs_escaper = np.concatenate((obs_escaper_pos, obs_escaper_vel, obs_escaper_infected), axis=0) 
             #print(f"post concat: {obs_escaper.shape} : {obs_escaper_infected}")
             self.obs[:self.obs_dim_escaper-3] = obs_escaper.T.reshape(-1)
             self.obs[-3] = self._sense_phero(self._p[:, i])
@@ -188,25 +191,24 @@ class PredatorPreySwarmEnv(ParallelEnv):
             
         return observations
 
-    def _get_reward_old(self, a):        
+    def _get_reward(self, a):        
         reward = {agent:0 for agent in list(range(self._n_e))}
         # check if the agents are colliding, if so, give a negative reward to both agents
         for i in range(self._n_e):
             for j in range(i):
-                if self._is_collide_b2b[i,j]: #TODO: simply elif by checking whether agents i or j are sick
-                    reward[i] = +1
-                    reward[j] = +1
+                if self._is_collide_b2b[i,j]:
+                    if self.infected[i] != self.infected[j]:
+                        reward[i] -= 10
+                        reward[j] -= 10
+                    else:
+                        reward[i] += 2  
+                        reward[j] += 2
                 # if one is sick and they collide give both -1
                 # if both are healthy give bot +1
 
         return reward
     
-    def _get_reward(self, a):
-        """
-        Samples rewards for each agent based on pheromone concentration at their positions.
-        Returns the rewards as a dictionary, similar to the `_get_reward` function.
-        """
-        
+    def _get_reward_new(self, a):
         rewards = {agent:0 for agent in list(range(self._n_e))}
         for agent in range(self._n_e):
             for j in range(agent):
@@ -243,12 +245,12 @@ class PredatorPreySwarmEnv(ParallelEnv):
         else:
             return {agent:{} for agent in list(range(self._n_e))}
     
-    def step_old(self, a):        
+    def step(self, a):        
         # a is {agent: [a1, a2]}
         # but need it to be shape (2, n_e)    
         a = np.array([a[agent] for agent in self.agents]).T
         for _ in range(self._n_frames): 
-            a[0] *= self._angle_e_max # heading
+            a[0] *= self._angle_e_max
             a[1] = (self._linAcc_e_max-self._linAcc_e_min)/2 * a[1] + (self._linAcc_e_max+self._linAcc_e_min)/2 
 
             self._d_b2b_center, self.d_b2b_edge, self._is_collide_b2b = get_dist_b2b(self._p, self._L, self._is_periodic, self._sizes)
@@ -256,36 +258,45 @@ class PredatorPreySwarmEnv(ParallelEnv):
             for i in range(self._n_e):
                 for j in range(i):
                     delta = self._p[:,j]-self._p[:,i]
-                    delta = make_periodic(delta, self._L)
+                    if self._is_periodic:
+                        delta = make_periodic(delta, self._L)
                     dir = delta / self._d_b2b_center[i,j]
                     sf_b2b_all[2*i:2*(i+1),j] = self._is_collide_b2b[i,j] * self.d_b2b_edge[i,j] * self._k_ball * (-dir)
                     sf_b2b_all[2*j:2*(j+1),i] = - sf_b2b_all[2*i:2*(i+1),j]  
 
-            # sf_b2b = np.sum(sf_b2b_all, axis=1, keepdims=True).reshape(self._n_e,2).T 
+            sf_b2b = np.sum(sf_b2b_all, axis=1, keepdims=True).reshape(self._n_e,2).T 
+
+            if self._is_periodic == False:
+                self.d_b2w, self.is_collide_b2w = get_dist_b2w(self._p, self._size, self._L)
+                sf_b2w = np.array([[1, 0, -1, 0], [0, -1, 0, 1]]).dot(self.is_collide_b2w * self.d_b2w) * self._k_wall   
+                df_b2w = np.array([[-1, 0, -1, 0], [0, -1, 0, -1]]).dot(self.is_collide_b2w*np.concatenate((self._dp, self._dp), axis=0))  *  self._c_wall 
 
             if self._escaper_strategy == 'input':
                 pass
-            #elif self._escaper_strategy == 'static':
-            #    a = np.zeros((self._act_dim_escaper, self._n_e))
-            #elif self._escaper_strategy == 'random':
-            #    a = np.random.uniform(-1,1, (self._act_dim_escaper, self._n_e)) 
-            #    a[0] *= self._angle_e_max
-            #    a[1] = (self._linAcc_e_max-self._linAcc_e_min)/2 * a[1] + (self._linAcc_e_max+self._linAcc_e_min)/2 
-            #else:
-            #    print('Wrong in Step function')
-
+            elif self._escaper_strategy == 'static':
+                a = np.zeros((self._act_dim_escaper, self._n_e))
+            elif self._escaper_strategy == 'random':
+                a = np.random.uniform(-1,1, (self._act_dim_escaper, self._n_e)) 
+                a[0] *= self._angle_e_max
+                a[1] = (self._linAcc_e_max-self._linAcc_e_min)/2 * a[1] + (self._linAcc_e_max+self._linAcc_e_min)/2 
+            else:
+                print('Wrong in Step function')
             self._theta += a[0]
             self._theta = normalize_angle(self._theta)
             self._heading = np.concatenate((np.cos(self._theta), np.sin(self._theta)), axis=0) 
             u = a[1] * self._heading 
-            F = self._sensitivity * u #  + sf_b2b - self._c_aero*self._dp
+            if self._is_periodic:
+                F = self._sensitivity * u  + sf_b2b - self._c_aero*self._dp
+            else:
+                F = self._sensitivity * u  + sf_b2b - self._c_aero*self._dp + sf_b2w + df_b2w 
             self._ddp = F/self._m
             self._dp += self._ddp * self._dt
             self._dp = np.clip(self._dp, -self._linVel_e_max, self._linVel_e_max)
             self._p += self._dp * self._dt
-            self._p = make_periodic(self._p, self._L)
+            if self._is_periodic:
+                self._p = make_periodic(self._p, self._L)
             if self._render_traj == True:
-                self._p_traj = np.concatenate((self._p_traj[1:,:,:], self._p.reshape(1, 2, self._n_e)), axis=0)
+                self._p_traj = np.concatenate( (self._p_traj[1:,:,:], self._p.reshape(1, 2, self._n_e)), axis=0 )
         
         if self.timesteps_left <= 0:
             self.agents = []
@@ -295,13 +306,16 @@ class PredatorPreySwarmEnv(ParallelEnv):
             truncateds = {agent:False for agent in list(range(self._n_e))}
 
         self.obs = self._get_obs()
+
+        min_dist = 0.07
+        for i in range(self._n_e):
+            for j in range(i):
+                if self._d_b2b_center[i,j] < min_dist:
+                    self.interactions[i, j] += 1
+
         return self.obs, self._get_reward(a), self.terminateds, truncateds, self._get_info()
     
-    def step(self, a):
-        """
-        Perform a single step in the environment, updating the positions and handling collisions.
-        Simplified for ant movement with no external forces except collision forces.
-        """
+    def step_new(self, a):
         # Convert actions dictionary to a matrix (2, n_e)
         a = np.array([a[agent] for agent in self.agents]).T
         for _ in range(self._n_frames): 
@@ -313,17 +327,23 @@ class PredatorPreySwarmEnv(ParallelEnv):
 
             # Apply movement force
             a[1] = (self._linAcc_e_max - self._linAcc_e_min) / 2 * a[1] + (self._linAcc_e_max + self._linAcc_e_min) / 2
-            u = a[1] * self._heading  # Calculate movement vector based on force and heading
+            u = a[1] * self._heading * self._sensitivity  # Compute acceleration based on heading and scaled force
+            F = self._sensitivity * u #  + sf_b2b - self._c_aero*self._dp
+            self._ddp = F/self._m
+            #print(a[1])
+            # Update velocity (_dp) and clip it to max velocity
+            self._dp = self._ddp * self._dt
+            self._dp = np.clip(self._dp, -self._linVel_e_max, self._linVel_e_max)
 
             # Update positions
-            self._p += self._sensitivity * u * self._dt  # Simple update without acceleration or drag
+            self._p += self._dp * self._dt  # Simple update without acceleration or drag
             self._p = make_periodic(self._p, self._L)  # Keep positions within bounds (periodic boundary)
             #print(self._p)
 
             # Detect collisions
             self._d_b2b_center, self.d_b2b_edge, self._is_collide_b2b = get_dist_b2b(self._p, self._L, self._is_periodic, self._sizes)
 
-            # Handle collisions
+            # Handle collisions (simplified)
             for i in range(self._n_e):
                 for j in range(i):
                     if self._is_collide_b2b[i, j]:  # If collision detected
@@ -337,7 +357,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
                         self._p[:, i] -= dir * overlap / 2  # Push agent i away
                         self._p[:, j] += dir * overlap / 2  # Push agent j away
 
-            self._dissipate_pheromones() # update pheromone concentration
+            #self._dissipate_pheromones() # update pheromone concentration
             #print(self.pos_phero)
 
             # Render trajectories if enabled
@@ -395,7 +415,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self.viewer = None
     
     def _get_observation_space(self):
-        self.obs_dim_escaper = ( 3 * self._topo_n_e2e ) + 6
+        self.obs_dim_escaper = ( 5 * self._topo_n_e2e ) + 8
         observation_space = spaces.Box(low=-np.inf, high=+np.inf, shape=(self.obs_dim_escaper, ), dtype=np.float32)
         return observation_space
 
@@ -413,8 +433,9 @@ class PredatorPreySwarmEnv(ParallelEnv):
     
     def compute_metrics(self):
         G = self.env2nx()
-        min_dist = 0.2 # TODO find reasonable value
-        G_ = G.copy()
+        min_dist = 0.1
+        G_ = G.copy().to_undirected()
+        norm_interactions = self.interactions / np.max((np.max(self.interactions), 1))
         for edge in G.edges(data=True):
             if edge[2]['distance'] > min_dist:
                 G_.remove_edge(edge[0], edge[1])
@@ -423,13 +444,16 @@ class PredatorPreySwarmEnv(ParallelEnv):
         # md = ... # modularity between infected and non infected nodes
         ac = nx.average_clustering(G_)
         dens = nx.density(G_)
+        md = nx.algorithms.community.quality.modularity(G_, [{i for i in range(self._n_e) if self.infected[i]}, {i for i in range(self._n_e) if not self.infected[i]}])
         # diam = ... # network diameter, but network is not connected, adjust
         ne = nx.global_efficiency(G_)
+        dc = nx.degree_centrality(G_)
+        avg_dc = np.mean(list(dc.values()))
         # dc = nx.betweenness_centrality(G_) # or some other centrality measure, but for whole network
         # as = ... # assortativity, node specific
         ######################################################################
         
-        return {'average_clustering': ac, 'network_efficiency': ne, 'density': dens}
+        return {'average_clustering': ac, 'network_efficiency': ne, 'density': dens, 'modularity': md, 'average_degree_centrality': avg_dc, 'G': G_}
 
 if __name__ == '__main__':
     # parse json file
