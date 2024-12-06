@@ -33,4 +33,4 @@ total_timesteps = 600_000 #TODO get better value
 model.learn(total_timesteps=total_timesteps, callback=eval_callback)
 
 # Save the model
-model.save("phero_group")
+model.save("models/phero_group")

@@ -14,7 +14,7 @@ env = ss.pettingzoo_env_to_vec_env_v1(env)
 env = ss.concat_vec_envs_v1(env, 1, base_class="stable_baselines3")
 
 # Load the saved model
-model = PPO.load("phero_group.zip")
+model = PPO.load("models/phero_group.zip")
 
 # Use the model for inference
 obs = env.reset()

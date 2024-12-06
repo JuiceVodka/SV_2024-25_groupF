@@ -209,6 +209,10 @@ class PredatorPreySwarmEnv(ParallelEnv):
         
         rewards = {agent:0 for agent in list(range(self._n_e))}
         for agent in range(self._n_e):
+            for j in range(agent):
+                if self._is_collide_b2b[agent,j]: #TODO: simply elif by checking whether agents i or j are sick
+                    rewards[agent] = +2
+                    rewards[j] = +2
             # Agent position in physical coordinates
             agent_x = self._p[0, agent]  # Agent's x-coordinate
             agent_y = self._p[1, agent]  # Agent's y-coordinate
@@ -223,14 +227,10 @@ class PredatorPreySwarmEnv(ParallelEnv):
 
             # Sample pheromone concentration at the agent's position
             phero_val = self.pos_phero[shift_y, shift_x]
-            if phero_val <= 1:
-                rewards[agent] = -1
-            elif phero_val >= 5 and phero_val < 10:
+            if phero_val <= self.sense_phero_threshold:
+                rewards[agent] = -5
+            else:
                 rewards[agent] = +2
-            elif phero_val >= 10 and phero_val < 15:
-                rewards[agent] = +5
-            elif phero_val >= 15:
-                rewards[agent] = +10
         #print(rewards)
         
         return rewards
