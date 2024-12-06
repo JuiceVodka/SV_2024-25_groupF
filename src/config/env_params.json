@@ -11,6 +11,8 @@
     "linAcc_e_max": 1,
     "angle_e_max": 0.5,
     "ep_len": 1000,
+    "part_infected": 0.0,
+
 
     "is_periodic": true,
     "L": 1,

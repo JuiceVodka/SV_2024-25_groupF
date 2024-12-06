@@ -1,16 +1,18 @@
 {
-    "n_e": 10,
+    "n_e": 40,
     "escaper_strategy": "input",
     "act_dim_escaper": 2,
     "m_e": 1,
     "size_e": 0.035,
     "topo_n_e2e": 6,
     "FoV_e": 5,
-    "sensitivity": 1,
-    "linVel_e_max": 0.2,
-    "linAcc_e_max": 0.2,
-    "angle_e_max": 2,
+    "sensitivity": 0.25,
+    "linVel_e_max": 0,
+    "linAcc_e_max": 1,
+    "angle_e_max": 0.5,
     "ep_len": 200,
+    "part_infected": 0.0,
+
 
     "is_periodic": true,
     "L": 1,
@@ -18,7 +20,6 @@
     "c_aero": 2,
     "dt": 0.1,
     "n_frames": 1,
-
 
     "render_traj": true,
     "traj_len": 15

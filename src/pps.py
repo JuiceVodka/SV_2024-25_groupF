@@ -26,6 +26,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self._linAcc_e_max = 1
             self._angle_e_max = 2
             self._ep_len = 200
+            self._part_infected = 0.1
             
             # environment parameters
             self._is_periodic = True
@@ -58,7 +59,19 @@ class PredatorPreySwarmEnv(ParallelEnv):
         self._m = get_mass(self._m_e, self._n_e)  
         self._size, self._sizes = get_sizes(self._size_e, self._n_e)  
 
+        self.infected = {agent:False for agent in list(range(self._n_e))}
+        for i in np.random.choice(self.possible_agents, int(self._n_e*self._part_infected)):
+            self.infected[i] = True
+
         self.metrics_in_info = metrics_in_info
+
+        self.grid_size = 20  # Size of the grid (2000x2000)
+        self.X, self.Y = np.meshgrid(np.linspace(-self._L, self._L, self.grid_size), np.linspace(-self._L, self._L, self.grid_size))
+        self.pos_phero = np.zeros_like(self.X)  # Initialize pheromone map
+        self.pheromone_intensity = 1  # Intensity of the pheromone
+        self.pheromone_sigma = 0.15  # Spread of the pheromone
+        self.sense_phero_threshold = 0.9
+        self.pheromone_decay = 0.25
         
     def observation_space(self, agent):
         return self.observation_spaces[agent]
@@ -95,8 +108,58 @@ class PredatorPreySwarmEnv(ParallelEnv):
         self._theta = np.pi * np.random.uniform(-1,1, (1, self._n_e))
         self._heading = np.concatenate((np.cos(self._theta), np.sin(self._theta)), axis=0)
         self.obs = self._get_obs()
-        return self.obs, self._get_info()
 
+        self.infected = {agent:False for agent in list(range(self._n_e))}
+        for i in np.random.choice(self.possible_agents, int(self._n_e*self._part_infected)):
+            self.infected[i] = True
+            
+        return self.obs, self._get_info()
+        
+    def _dissipate_pheromones(self):
+        """
+        Simplified pheromone dissipation function where the whole grid's value increases at the agent's position.
+        """
+        # Decay the pheromone map (apply simple decay factor)
+        self.pos_phero *= (1-self.pheromone_decay)  # Applying a simple decay to all cells in the grid
+        
+        # Assume _p holds agent positions (2D: [x, y] for each agent)
+        for i in range(self._n_e):  # Loop over agents (assuming self._n_e is the number of agents)
+            agent_x, agent_y = self._p[0, i], self._p[1, i]
+            
+            # Map agent positions from [-1, 1] range to [0, grid_size] range (0-10)
+            shift_x = int((agent_x + 1) / 2 * self.grid_size)
+            shift_y = int((agent_y + 1) / 2 * self.grid_size)
+            
+            # Ensure the position is within bounds (for edge cases)
+            shift_x = np.clip(shift_x, 0, self.grid_size - 1)
+            shift_y = np.clip(shift_y, 0, self.grid_size - 1)
+            
+            # Increase the pheromone value at the agent's position
+            self.pos_phero[shift_x, shift_y] += self.pheromone_intensity
+
+        # Optionally, set small pheromone values to zero for sparsity
+        self.pos_phero[self.pos_phero < 1e-4] = 0
+
+    def _sense_phero(self, pos, positive=True):
+        agent_x = pos[0]
+        agent_y = pos[1]
+        
+        # Map agent positions from [-1, 1] range to [0, grid_size] range (0-10)
+        shift_x = int((agent_x + 1) / 2 * self.grid_size)
+        shift_y = int((agent_y + 1) / 2 * self.grid_size)
+
+        # Ensure indices are within the valid range (0 to grid_size - 1)
+        shift_x = np.clip(shift_x, 0, self.grid_size - 1)
+        shift_y = np.clip(shift_y, 0, self.grid_size - 1)
+
+        if positive:
+            val = self.pos_phero[shift_y, shift_x]
+            if val >= self.sense_phero_threshold:
+                return 1
+            else:
+                return 0
+        else:
+            return 0
 
     def _get_obs(self):
 
@@ -106,20 +169,26 @@ class PredatorPreySwarmEnv(ParallelEnv):
             relPos_e2e = self._p - self._p[:,[i]]
             if self._is_periodic: relPos_e2e = make_periodic(relPos_e2e, self._L)
             relVel_e2e = self._heading - self._heading[:,[i]]
-            relPos_e2e, relVel_e2e = get_focused(relPos_e2e, relVel_e2e, self._FoV_e, self._topo_n_e2e, True)  
+            infected = np.array([self.infected[j] for j in range(self._n_e)])
+            relPos_e2e, relVel_e2e, infected = get_focused(relPos_e2e, relVel_e2e, infected, self._FoV_e, self._topo_n_e2e, True)  
 
             obs_escaper_pos = np.concatenate((self._p[:, [i]], relPos_e2e), axis=1)
-            obs_escaper_vel = np.concatenate((self._dp[:, [i]], relVel_e2e), axis=1)
-            obs_escaper = np.concatenate((obs_escaper_pos, obs_escaper_vel), axis=0) 
-            
-            self.obs[:self.obs_dim_escaper-2] = obs_escaper.T.reshape(-1)        
+            #obs_escaper_vel = np.concatenate((self._dp[:, [i]], relVel_e2e), axis=1)
+            #print(f"pre concat: {obs_escaper_pos.shape} : {obs_escaper_pos}")
+            obs_escaper_infected = np.concatenate((np.array([self.infected[i]]), infected), axis=0).reshape(1,self._topo_n_e2e+1)
+            obs_escaper = np.concatenate((obs_escaper_pos, obs_escaper_infected), axis=0) 
+            #print(f"post concat: {obs_escaper.shape} : {obs_escaper_infected}")
+            self.obs[:self.obs_dim_escaper-3] = obs_escaper.T.reshape(-1)
+            self.obs[-3] = self._sense_phero(self._p[:, i])
+            #print(self.obs[-3])
             self.obs[self.obs_dim_escaper-2:] = self._heading[:,i] # Own heading
+            #print(f"all:{self.obs.shape}")
             
             observations[i] = self.obs
             
         return observations
 
-    def _get_reward(self, a):        
+    def _get_reward_old(self, a):        
         reward = {agent:0 for agent in list(range(self._n_e))}
         # check if the agents are colliding, if so, give a negative reward to both agents
         for i in range(self._n_e):
@@ -129,8 +198,42 @@ class PredatorPreySwarmEnv(ParallelEnv):
                     reward[j] = +1
                 # if one is sick and they collide give both -1
                 # if both are healthy give bot +1
-                
+
         return reward
+    
+    def _get_reward(self, a):
+        """
+        Samples rewards for each agent based on pheromone concentration at their positions.
+        Returns the rewards as a dictionary, similar to the `_get_reward` function.
+        """
+        
+        rewards = {agent:0 for agent in list(range(self._n_e))}
+        for agent in range(self._n_e):
+            # Agent position in physical coordinates
+            agent_x = self._p[0, agent]  # Agent's x-coordinate
+            agent_y = self._p[1, agent]  # Agent's y-coordinate
+            
+            # Map agent positions from [-1, 1] range to [0, grid_size] range (0-10)
+            shift_x = int((agent_x + 1) / 2 * self.grid_size)
+            shift_y = int((agent_y + 1) / 2 * self.grid_size)
+
+            # Ensure indices are within the valid range (0 to grid_size - 1)
+            shift_x = np.clip(shift_x, 0, self.grid_size - 1)
+            shift_y = np.clip(shift_y, 0, self.grid_size - 1)
+
+            # Sample pheromone concentration at the agent's position
+            phero_val = self.pos_phero[shift_y, shift_x]
+            if phero_val <= 1:
+                rewards[agent] = -1
+            elif phero_val >= 5 and phero_val < 10:
+                rewards[agent] = +2
+            elif phero_val >= 10 and phero_val < 15:
+                rewards[agent] = +5
+            elif phero_val >= 15:
+                rewards[agent] = +10
+        #print(rewards)
+        
+        return rewards
     
     def _get_info(self):
 
@@ -215,6 +318,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
             # Update positions
             self._p += self._sensitivity * u * self._dt  # Simple update without acceleration or drag
             self._p = make_periodic(self._p, self._L)  # Keep positions within bounds (periodic boundary)
+            #print(self._p)
 
             # Detect collisions
             self._d_b2b_center, self.d_b2b_edge, self._is_collide_b2b = get_dist_b2b(self._p, self._L, self._is_periodic, self._sizes)
@@ -232,6 +336,9 @@ class PredatorPreySwarmEnv(ParallelEnv):
                         # Adjust positions to resolve collision
                         self._p[:, i] -= dir * overlap / 2  # Push agent i away
                         self._p[:, j] += dir * overlap / 2  # Push agent j away
+
+            self._dissipate_pheromones() # update pheromone concentration
+            #print(self.pos_phero)
 
             # Render trajectories if enabled
             if self._render_traj:
@@ -263,9 +370,13 @@ class PredatorPreySwarmEnv(ParallelEnv):
                 if self._render_traj: self.trajrender.append( rendering.Traj( list(zip(self._p_traj[:,0,i], self._p_traj[:,1,i])),  False) )
                 #agents.append( rendering.make_unicycle(self._size_e) )
                 agents.append( rendering.make_ant(self._size_e) )
-                # TODO: change color of sick agents
-                agents[i].set_color_alpha(0, 0, 0, 1)
-                if self._render_traj: self.trajrender[i].set_color_alpha(0, 0, 0, 0.5) #0, 0.333, 0.778, 0.5
+                # change color of sick agents
+                if self.infected[i]:
+                    agents[i].set_color_alpha(0.778, 0.333, 0, 1)
+                    if self._render_traj: self.trajrender[i].set_color_alpha(0.778, 0.333, 0, 0.5)
+                else:
+                    agents[i].set_color_alpha(0, 0, 0, 1)
+                    if self._render_traj: self.trajrender[i].set_color_alpha(0, 0, 0, 0.5) #0, 0.333, 0.778, 0.5
                 self.tf.append( rendering.Transform() )
                 agents[i].add_attr(self.tf[i])
                 self.viewer.add_geom(agents[i])
@@ -284,7 +395,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self.viewer = None
     
     def _get_observation_space(self):
-        self.obs_dim_escaper = ( 4 * self._topo_n_e2e ) + 6
+        self.obs_dim_escaper = ( 3 * self._topo_n_e2e ) + 6
         observation_space = spaces.Box(low=-np.inf, high=+np.inf, shape=(self.obs_dim_escaper, ), dtype=np.float32)
         return observation_space
 

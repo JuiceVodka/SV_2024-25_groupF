@@ -353,11 +353,13 @@ def make_ant(size):
     head = make_circle(size * 0.3)  # Head (smallest circle)
     thorax = make_circle(size * 0.3)  # Thorax (medium circle)
     abdomen = make_circle(size * 0.4)  # Abdomen (largest circle)
+    #phero_r = make_circle(size*10, filled=False)
 
     # Position the body segments
     head.add_attr(Transform(translation=(size * 0.6, 0)))
     thorax.add_attr(Transform(translation=(0, 0)))
     abdomen.add_attr(Transform(translation=(-size * 0.7, 0)))
+    #phero_r.add_attr(Transform(translation=(0, 0)))
     #leg1.add_attr(Transform(translation=(0,-size), rotation=0.5))
 
     # Legs
@@ -373,7 +375,7 @@ def make_ant(size):
         legs.append(leg)
 
     # Combine all parts
-    parts = [head, thorax, abdomen] + legs
+    parts = [head, thorax, abdomen] + legs #phero_r
     ant = Compound(parts)
     return ant
 
