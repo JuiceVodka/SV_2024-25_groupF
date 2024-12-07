@@ -46,6 +46,8 @@ Modeling Social Distancing with Reinforcement Learning}
 
 \maketitle
 
+\noindent\textit{\textbf{ABSTRACT: This study investigates the emergence of social distancing behaviors in artificial agents using a reinforcement learning (RL) framework. Agents interact in a two-dimensional environment and learn to avoid infected individuals to minimize disease transmission. Drawing inspiration from the adaptive behaviors of ants, agents exchange health information and adjust their behavior accordingly. Initial results demonstrate that agents trained with a basic reward policy show increased separation between healthy and infected individuals, as observed through network metrics such as modularity and clustering. This work highlights the potential of RL in modeling disease dynamics and social distancing strategies.}}
+
 \section{Introduction}
 
 The spread of infectious diseases is a significant challenge in both human and animal populations, prompting natural and artificial systems alike to develop mechanisms for minimizing transmission. Social distancing has emerged as a common adaptive behavior in nature, where organisms avoid close contact with infected individuals to protect themselves and their groups. This phenomenon has been observed across a variety of species and environments, suggesting it provides an evolutionary advantage in mitigating disease transmission risks. In response to the COVID-19 pandemic, social distancing also became a key public health strategy for humans, sparking interest in understanding how such behaviors might emerge and evolve autonomously in artificial agents.
@@ -86,24 +88,11 @@ Additionally, the paper suggests that low-level exposure to pathogens may have a
 
 This study employs a multi-agent reinforcement learning (RL) framework, adapted from the environment developed by Li et al., 2023 \cite{li2023predator}. The simulation takes place in a two-dimensional continuous space with periodic boundary conditions, meaning that agents crossing one edge of the square environment reappear on the opposite edge, retaining their velocity.
 
-To tailor the framework to our objectives, several modifications will be implemented. These include adapting the agents' perception of their environment to incorporate health status, modeling interactions to account for potential pathogen transmission, and redefining the reward policy to align with our disease-spread mitigation goals. By leveraging the existing framework, we can focus our efforts on refining these elements and experimenting with various reward strategies, rather than constructing a new simulation environment from scratch.
+Agents are modeled to resemble ants (changed from unicycles like in \ref{fig:main_figure}), with their body consisting of three connected circles (the back circle being slightly larger) and six legs. Their behavior is driven by a combination of active and passive forces. Active forces, controlled by the agents, include a forward movement force ($aF$) aligned with their heading direction and a rotational force ($aR$) enabling changes in heading. Passive forces, inherent to the environment, include drag force ($Fd$), simulating resistance opposing the agent's velocity, and repulsive force ($Fa$), which prevents agents from overlapping by pushing them apart. At each simulation step, the agents' positions and velocities are updated by summing all acting forces, with the dynamics governed by:
 
-\subsection{Agent Dynamics}
+$$ \dot{x} = v, \quad \dot{v} = \frac{ha_F + F_d + F_a}{m}, \quad \dot{\theta} = a_R $$  
 
-Agents are represented as circles with a short line segment indicating their heading direction. Their behavior is influenced by a combination of active (controllable) and passive (inherent) forces:
-
-\subsubsection{Active Forces (Agent Actions)}
-The controllable forces influencing the agents' movement illustrated on the left side of Figure~\ref{fig:main_figure} include: 
-\begin{itemize} 
-    \item Forward Movement Force ($a_F$): A force aligned with the agent's current heading direction, enabling forward motion. \item Rotational Force ($a_R$): A force that allows the agent to adjust its heading direction, facilitating turns.
-\end{itemize}
-
-\subsubsection{Passive Forces}
-These inherent forces shown on the right side Figure~\ref{fig:main_figure} naturally affect the agents, irrespective of their chosen actions: 
-\begin{itemize} 
-    \item Drag Force ($F_d$): Acts opposite to the agent's velocity, simulating resistance or friction. 
-    \item Repulsive Force ($F_a$): Arises between agents in proximity, pushing them apart to avoid overlap or collision.
-\end{itemize}
+where $x$ is the agent's position, $v$ its velocity, $\theta$ its heading angle, $h$ the unit vector for heading direction, and $m$ the agent's mass. The ant-like design, illustrated in Figure~\ref{fig:main_figure}, enhances realism while preserving the underlying principles of agent dynamics.
 
 \begin{figure}[hbt]
     \centering
@@ -123,61 +112,146 @@ These inherent forces shown on the right side Figure~\ref{fig:main_figure} natur
     \label{fig:main_figure}
 \end{figure}
 
-At each time step, the simulation updates each agent's position and velocity by calculating the sum of the forces acting upon it. The overall dynamics governing these updates are given by:
-
-$$ \dot{x} = v $$  
-$$ \dot{v} = \frac{ha_F + F_d + F_a}{m} $$  
-$$ \dot{\theta} = a_R $$  
-
-Where:
-\begin{itemize}
-    \item $x \in \mathbb{R}^2$ is the agent's position,
-    \item $v \in \mathbb{R}^2$ is the agent's velocity,
-    \item $\theta \in [-\pi, \pi]$ is the agent's heading angle,
-    \item $h \in \mathbb{R}^2$ is the unit vector representing the agent's heading direction, calculated as $h = [\cos(\theta), \sin(\theta)]^T$,
-    \item $m \in \mathbb{R}$ is the agent's mass.\\
-\end{itemize}
-
-To better align the simulation with ant-like movement, rather than the smooth, bird-like flight patterns of the original framework, several parameters will require significant adjustments. Currently, settings like drag coefficient, stiffness coefficient, maximum forward acceleration, and rotational acceleration are optimized for smooth, continuous paths with limited turning ability and no halting, which emulates bird flight. To emulate the more abrupt, flexible movements characteristic of ants in a 2D bird's-eye view, we will modify these parameters. Specifically, we’ll increase rotational flexibility, reduce constraints on movement continuity, and adjust the ability to stop, giving agents more freedom in directional changes and pauses.
+To tailor the framework to our objectives, several modifications were implemented. These include:
+\begin{enumerate}
+    \item Agent visualization (unicycle to ant) and movement parameters (more "ant-like").
+    \item Agent perception includes health status of the perceived agents (based on FoV).
+    \item Keeping track of agent interactions, used for network evaluation.
+    \item Redefine the reward policy to align with our disease-spread mitigation goals.
+\end{enumerate}
 
 \subsection{Basic Reward Policy}
 
-Our initial reward policy for producing social distancing patterns in agent behavior will focus solely on agent interaction. Social behavior will be encouraged by rewarding agents based on the number of nearby agents, which should lead to grouping behavior. Social distancing will be promoted by penalizing healthy agents for being near infected ones and vice versa. Specific reward and penalty values will be fine-tuned as we begin experimentation.
+Our initial reward policy aimed to produce social distancing patterns in agent behavior is based on direct collisions between agents as the primary form of information exchange. Collisions between agents of the same status (healthy-healthy or infected-infected) were rewarded to encourage grouping behavior. In contrast, collisions between agents of different statuses (healthy-infected or vice versa) were penalized to discourage close contact to limit disease spread.
 
-We plan to start with this simple reward policy before scaling up simulation complexity with more nuanced agent interactions. For example, we may introduce cooperative behavior by allowing agents to exchange resources or other benefits, which could model cooperative dynamics where agents work together to achieve common goals.
-
-\subsection{Model Performance Measures}
-
-To assess whether social distancing patterns emerge, we will transform agent interactions into a network and analyze the network structure, as demonstrated in \cite{Stroeymeyt2018}. We will focus on network statistics that impact disease transmission, including modularity (expected to decrease), clustering (expected to decrease), network efficiency (expected to increase), and degree centrality (expected to increase). Additionally, we will measure the average distance between agents, which will indicate whether agents are avoiding each other. These metrics will first be calculated in a network before the introduction of the pathogen to observe passive social distancing. After the pathogen is introduced, we will track how the network structure changes over time.
-
-Emergent social distancing behavior should also be clearly observable in the simulation visualization. We expect healthy agents to avoid infected ones, and vice versa. This behavior will be especially evident if we increase the agent density within the environment. In such cases, we should observe infected agents becoming isolated, forming empty regions around them, while healthy agents fill the remaining space in the simulation.
+The above mention basic reward policy is demonstrated in isolation with all healthy agents in figure \ref{fig:demo}. On the left figure we penalized each agent upon collision with a $-1$ reward, while on the right figure we rewarded each colliding agent with a $+1$ reward. This demonstrates how a very simple change in the reward policy effects the learned behavior.
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=0.75\linewidth]{figures/env_test_img.jpg}
-    \caption{Simulation visualization example.}
-    \label{fig:env_example}
+    \begin{minipage}{0.2\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{avoid.png}
+        %\caption{Active forces.}
+        %\label{fig:image1}
+    \end{minipage}
+    \begin{minipage}{0.2\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{touch.png}
+        %\caption{Passive forces.}
+        %\label{fig:image2}
+    \end{minipage}
+    \caption{Demonstration of simple reward policies - punish (right) or reward (left) collisions.}
+    \label{fig:demo}
 \end{figure}
+
+Building on this foundation, we introduced a \textbf{diminishing reward system} to refine agent behavior further. This system rewarded agents for diverse interactions while penalizing risky collisions. To prevent excessive rewards from repeated interactions between the same agents, we incorporated a diminishing factor based on recent interactions:
+$$
+\mathrm{reward}(a, b) = \begin{cases}
+    -\lambda & \text{if } sick(a) \neq sick(b) \\ 
+    +\sigma * \gamma (1 - recent(a,b)) & \text{otherwise.}
+\end{cases}
+$$
+
+Here, \texttt{recent(a,b)} is initialized to $1$ upon interaction and decreases by a factor of $0.9$ at each step. This mechanism ensures diminishing rewards for repeated collisions, encouraging diverse and meaningful interactions that better reflect real-world dynamics.
+
+To further enhance agent behavior, we introduced optional reward components that address specific aspects of agent-environment dynamics. These additions allow for greater adaptability to different scenarios:
+
+\begin{enumerate}
+    \item \textbf{Wall Collision Penalty} $\rightarrow$ In non-periodic environments, where agents encounter boundaries, a wall collision penalty discourages agents from colliding with walls:
+    $$
+    \mathrm{reward}(a) = \begin{cases}
+        -\lambda & \text{if a collides with any wall}\\ 
+        0 & \text{otherwise.}
+    \end{cases}
+    $$
+    \item \textbf{Control Penalty} $\rightarrow$ To mimic energy consumption during movement, a control penalty was introduced. This reward is proportional to the magnitude of the agent’s control inputs ($aF$ for forward force and $aR$ for rotational force), encouraging agents to exhibit conservative movement:
+    $$
+    \text{reward}(aF, aR) = -(\alpha |aF| + \beta |aR|)
+    $$
+\end{enumerate}
+
+These optional components provide additional flexibility to tailor agent behavior for specific objectives while preserving the simplicity and general applicability of the core reward system. Together, the diminishing reward mechanism and optional components have demonstrated their effectiveness in producing well-performing agents, with interaction networks resembling real-world examples. Ant behavior continues to serve as a baseline for comparison, validating the model's adaptability across species and scenarios.
+
+
+NOTE: this stuff gets moved to discussion?: We plan to start with this simple reward policy before scaling up simulation complexity with more nuanced agent interactions. For example, we may introduce cooperative behavior by allowing agents to exchange resources or other benefits, which could model cooperative dynamics where agents work together to achieve common goals.
+
+\subsection{Model Performance Measures}
+
+To evaluate whether social distancing patterns emerge in agent behavior, we transform agent interactions into a network and analyze its structure, following approaches demonstrated in \cite{Stroeymeyt2018}. Throughout each evaluation step, interactions between agents are tracked and recorded in an $n \times n$ interaction matrix, where $n$ is the total number of agents. Two agents are considered to be interacting upon collision. At the end of an evaluation run, this interaction matrix is normalized to construct the network. Nodes in the network represent agents, and edges are created between nodes if their interaction value exceeds a specified threshold ($0.01$). The actual values from the interaction matrix are used as edge weights, and each node is annotated with the health status of the corresponding agent.
+
+This network is then used to calculate appropriate network measures such as clustering, modularity (between infected and non-infected), network density and more. This allows us to get a better understanding of how agents are interacting with one another. We expect all of the mentioned metrics to increase as same health status agents interact more between themselves.
+
+Emergent social distancing behavior should also be clearly observable in the simulation visualization. We expect healthy agents to avoid infected ones, and vice versa. This behavior will be especially evident if we increase the agent density within the environment. In such cases, we should observe infected agents becoming isolated, forming empty regions around them, while healthy agents fill the remaining space in the simulation.
 
 \section{Results}
 
-As no experiments have been conducted yet, there are currently no results to present. Future updates will include analysis and findings based on the simulation outcomes, once experiments are underway.
+To test the performance of our initial reward policy, we ran an episode consisting of 5000 steps with both a random untrained network and a trained network. For each case, we constructed a network of all the interactions throughout the episode, which is displayed in Figure \ref{fig:nets_unfiltered}. In the network visualizations, healthy agents are colored blue, and infected agents are colored orange.
+
+\begin{figure}[hbt]
+    \centering
+    \begin{minipage}{0.20\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{randomNet.png}
+        %\caption{Active forces.}
+        %\label{fig:image1}
+    \end{minipage}
+    \begin{minipage}{0.25\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{learnedNet.png}
+        %\caption{Passive forces.}
+        %\label{fig:image2}
+    \end{minipage}
+    \caption{Random interaction network (left), learned interaction network (right).}
+    \label{fig:nets_unfiltered}
+\end{figure}
+
+In the random network, no clear structure is apparent. However, in the learned network, a separation begins to emerge, with infected agents interacting less with healthy ones, but still interacting with other infected agents. This behavior aligns with our expectations. The structure becomes more pronounced when we filter the network by keeping only edges with weights greater than 0.2, representing significant interactions. The filtered network is shown in Figure \ref{fig:filtered_net}.
+
+\begin{figure}[hbt]
+    \centering
+    \includegraphics[width=0.9\linewidth]{filteredNet.png}
+    \caption{Filtered learned interaction network.}
+    \label{fig:filtered_net}
+\end{figure}
+
+In the filtered network, it is clearly observed that infected agents interact much less with healthy agents. To gain a deeper understanding of the networks and to assess metrics that are harder to discern from visual inspection alone, we calculated several network metrics, which are presented in Table \ref{tab:metrics}. These metrics are relevant to pathogen transmission. 
+
+\begin{table}[htb]
+    \centering
+    \begin{tabular}{l|cc}
+        \textbf{Net. Metric} & \textbf{Random} & \textbf{Trained}   \\ \hline
+        Clustering        & 0.041  & 0.064     \\
+        Modularity        & -0.016 & 0.050     \\
+        Density           & 0.728  & 0.779     \\
+        Efficiency        & 0.864  & 0.889    
+    \end{tabular}
+    \label{tab:metrics}
+\end{table}
+
+An increase in modularity suggests greater separation between the two groups, which leads to denser clusters and higher clustering values. These changes indicate that basic social distancing behavior has begun to emerge, with infected and healthy agents interacting less with each other. However, to gain a more comprehensive understanding of the agents' behavior and its impact on disease transmission, further testing is needed.
+
+\begin{figure}[hbt]
+    \centering
+    \includegraphics[width=0.9\linewidth]{trained_viz.png}
+    \caption{Visualization of our best performing policy on $75$ agents ($20\%$ infected).}
+    \label{fig:trained_viz}
+\end{figure}
+
+Figure \ref{fig:trained_viz} visualizes a simulation of our best-performing policy. The orange ants represent infected ants, while the black ants represent healthy ones. Although this figure appears to indicate the behavior described by the network statistics (with same-health-status agents tending to group), it should be noted that the separation between healthy and infected agents is not as pronounced as hoped. This is primarily due to the fact that interactions are based on collisions, and agents only perceive the 6-8 nearest agents in their field of view (FoV). This limitation causes agents of different statuses to often move much closer to each other than intended.
+
+We also conducted some preliminary experiments with alternative methods of information exchange to produce clearer visualizations. Inspired by ant behavior, we implemented a simplified pheromone system, where each agent leaves a mark in the surrounding area that accumulates into a concentration heatmap that decays over time. These pheromones could be either positive (indicating "safety" areas from healthy agents) or negative (indicating "danger" from infected agents). If the concentration of pheromones at an agent's location reaches a certain threshold, the agent perceives it. This would theoretically provide agents with an indication of safety or danger ahead, helping them maintain greater distance from infected agents.
+
+Unfortunately, this approach did not work as expected. We believe the issue lies in the fact that there isn't a clear correlation between the observations (pheromone concentrations) and the actions that would lead to better rewards. With the collision-based interaction system, agents simply adjust their movement to either avoid or approach other agents based on their health status, which leads to higher cumulative rewards. In contrast, with the pheromone system, agents detect a concentration but cannot determine the exact actions needed to improve their situation. Although theoretically, actions should be to stop (set force to 0) for positive pheromones and flee for negative ones, the lack of a direct feedback loop between pheromone detection and reward-driven actions made it challenging for the agents to effectively use the pheromone system.
 
 \section{Discussion and Future Work}
 
-As we have not yet obtained results, this section will outline our immediate plans and objectives leading up to the second report deadline.
+As this is a preliminary report, we will use this discussion section to outline our future work.
 
-Our primary goal is to adapt the existing reinforcement learning (RL) framework to align with our modeling objectives. This will involve the following steps:
+Our primary goal is to replicate the experiment described in \cite{Stroeymeyt2018}. To achieve this, we plan to perform multiple runs for three scenarios: random networks, learned networks without infected agents, and learned networks with infected agents. The random network will serve as a baseline to normalize the metrics from our learned networks. We will then compare changes in network structure before and after the introduction of a pathogen. Throughout these experiments, we will track the same agents in pairs of pre- and post-introduction conditions. Additionally, we may continue refining our reward policies or explore alternative information exchange mechanisms beyond simple collisions.
 
-\begin{enumerate}
-    \item Agent Movement Adaptation: We will modify agent movement parameters to better simulate ant-like behavior. Current parameters are tuned for smoother, bird-like paths, whereas ants exhibit more abrupt, flexible movements. Adjustments will include increasing rotational flexibility, reducing constraints on movement continuity, and introducing options for sudden stops and directional changes.
-    \item Policy Network Adjustment: We plan to reconfigure the policy network, which is the agent’s decision-making neural network. This network will be updated to process relevant environmental information and output appropriate actions for each agent based on its health status, position, and nearby agents. This customization will enable the agents to better respond to their surroundings, a necessary step for simulating disease-avoidance behaviors.
-    \item Reward Policy Development: Our initial reward policy will be simple, rewarding agents for actions that minimize close interactions with infected agents and penalizing actions that lead to unnecessary contact. This will serve as a foundational incentive structure, helping us to examine how agents balance exploration with avoidance behaviors in a disease-prone environment.
-\end{enumerate}
+As the final presentation requires a presentation video, we are thinking of implementing dynamic disease spread, where healthy agents can become infected, which would include infected agent mortality after a set number of time steps. This would allow us to directly visualize the effectiveness of social distancing by observing whether the disease dies off (due to infected agents not spreading the infection and eventually dying in isolation) or if all agents succumb to the pathogen.\\
 
-These steps will provide the basis for preliminary testing and fine-tuning. Moving forward, we plan to iterate on these adaptations and expand our focus to include more complex reward structures and interaction rules based on early observations from the simulations.
-
-This organization clarifies each objective while positioning them as concrete steps. Additionally, the phrasing of each component emphasizes the purpose behind each modification, making the progression toward expected outcomes more cohesive and actionable.
+\noindent\textbf{CONTRIBUTIONS}: \textbf{LT} prepared/fixed the environment setup and did the basic avoid/touch experiments, \textbf{INS} and \textbf{AZ} did the reward policy experiments and the network statistics, \textbf{NL} did the alternative interactions experiment and organized/polished the report. Each member wrote their own parts of the report.
 
 \printbibliography
 
