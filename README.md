@@ -43,15 +43,15 @@ python infer.py
 ```
 
 ## Roadmap
-### First Report - 15. 11. 2024: 
+### ~~First Report - 15. 11. 2024~~: 
 - ~~Proper review of the use of RL in Collective Behavior~~
 - ~~Review the referenced articles to gain a clearer understanding of our methodology~~
 - ~~Decide on an ML library that supports RL and build a basic framework for simulations~~
 - ~~Code basic "dot" agents (movement + interactions through collisions)~~
 - ~~refine report before deadline~~
 
-### Second Report - 6. 12. 2024:
-- Refine our methodology based on the first report, write second report
+### ~~Second Report - 6. 12. 2024~~:
+- ~~Refine our methodology based on the first report, write second report~~
 - ~~Adapt agent movement so it's more aligned with ant movement~~
 - ~~Change the policy neural network to include agent health status on the input~~
 - ~~Start testing different reward policies aimed at emerging social distancing traits (interactions need to be sufficiently non-random and contribute to reducing pathogen flow)~~
@@ -61,3 +61,4 @@ python infer.py
 - Succeed (or fail) in emulating social distancing traits
 - Perform extensive experiments (environment, reward policy, agent movement/interactions, etc.)
 - Compare emergent behavior with observations in ants from [Social Network Plasticity Decreases Disease Transmission in a Eusocial Insect](https://www.science.org/doi/10.1126/science.aat4793) 
+- Make a cool visualization for the presentation
