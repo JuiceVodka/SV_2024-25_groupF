@@ -64,7 +64,7 @@ In the article Predator–prey survival pressure is sufficient to evolve swarmin
 
 The complexities of disease spread and natural social distancing behaviors are further explored in Infectious diseases and social distancing in nature \cite{stockmaier2021infectious}. This study examines social distancing as an adaptive response to disease across various animal species, both human and non-human. Social distancing behaviors can emerge as precautionary actions taken by healthy individuals or as physiological responses in infected individuals. The authors analyze the underlying mechanisms driving these behaviors in both infected and non-infected subjects, highlighting how natural populations instinctively modify social interactions to mitigate disease transmission.
 
-Building on this, Romano et al. in The trade-off between information and pathogen transmission in animal societies \cite{romano2022tradeoff} argue that social distancing alone may be insufficient to control disease spread. They note that individuals in a population inherently rely on information exchange, which conveys significant adaptive benefits. This article discusses the balance animals must strike between maintaining necessary social connections and minimizing infection risk, proposing that animals develop “network plasticity” as they weigh the costs and benefits of each social interaction. These trade-offs in social behavior offer insights that are highly relevant for modeling disease spread, as they underscore the complex motivations behind individual actions within a population.
+Building on this, Romano et al. (2022) in The trade-off between information and pathogen transmission in animal societies \cite{romano2022tradeoff} argue that social distancing alone may be insufficient to control disease spread. They note that individuals in a population inherently rely on information exchange, which conveys significant adaptive benefits. This article discusses the balance animals must strike between maintaining necessary social connections and minimizing infection risk, proposing that animals develop “network plasticity” as they weigh the costs and benefits of each social interaction. These trade-offs in social behavior offer insights that are highly relevant for modeling disease spread, as they underscore the complex motivations behind individual actions within a population.
 
 Together, these studies provide essential frameworks and insights into adaptive behavior modeling under environmental pressures. Our work will leverage these principles by employing a reinforcement learning model that integrates disease spread and social distancing, aiming to simulate the interplay of agent interactions and disease transmission dynamics.
 
@@ -86,7 +86,7 @@ Additionally, the paper suggests that low-level exposure to pathogens may have a
 
 \subsection{Simulation Environment}
 
-This study employs a multi-agent reinforcement learning (RL) framework, adapted from the environment developed by Li et al., 2023 \cite{li2023predator}. The simulation takes place in a two-dimensional continuous space with periodic boundary conditions, meaning that agents crossing one edge of the square environment reappear on the opposite edge, retaining their velocity.
+This study employs a multi-agent reinforcement learning (RL) framework, adapted from the environment developed by Li et al. (2023) \cite{li2023predator}. The simulation takes place in a two-dimensional continuous space with periodic boundary conditions, meaning that agents crossing one edge of the square environment reappear on the opposite edge, retaining their velocity.
 
 Agents are modeled to resemble ants (changed from unicycles like in \ref{fig:main_figure}), with their body consisting of three connected circles (the back circle being slightly larger) and six legs. Their behavior is driven by a combination of active and passive forces. Active forces, controlled by the agents, include a forward movement force ($aF$) aligned with their heading direction and a rotational force ($aR$) enabling changes in heading. Passive forces, inherent to the environment, include drag force ($Fd$), simulating resistance opposing the agent's velocity, and repulsive force ($Fa$), which prevents agents from overlapping by pushing them apart. At each simulation step, the agents' positions and velocities are updated by summing all acting forces, with the dynamics governed by:
 
@@ -140,7 +140,7 @@ The above mention basic reward policy is demonstrated in isolation with all heal
         %\caption{Passive forces.}
         %\label{fig:image2}
     \end{minipage}
-    \caption{Demonstration of simple reward policies - punish (right) or reward (left) collisions.}
+    \caption{Demonstration of simple reward policies - penalize (left) or reward (right) collisions.}
     \label{fig:demo}
 \end{figure}
 
@@ -172,12 +172,9 @@ To further enhance agent behavior, we introduced optional reward components that
 
 These optional components provide additional flexibility to tailor agent behavior for specific objectives while preserving the simplicity and general applicability of the core reward system. Together, the diminishing reward mechanism and optional components have demonstrated their effectiveness in producing well-performing agents, with interaction networks resembling real-world examples. Ant behavior continues to serve as a baseline for comparison, validating the model's adaptability across species and scenarios.
 
-
-NOTE: this stuff gets moved to discussion?: We plan to start with this simple reward policy before scaling up simulation complexity with more nuanced agent interactions. For example, we may introduce cooperative behavior by allowing agents to exchange resources or other benefits, which could model cooperative dynamics where agents work together to achieve common goals.
-
 \subsection{Model Performance Measures}
 
-To evaluate whether social distancing patterns emerge in agent behavior, we transform agent interactions into a network and analyze its structure, following approaches demonstrated in \cite{Stroeymeyt2018}. Throughout each evaluation step, interactions between agents are tracked and recorded in an $n \times n$ interaction matrix, where $n$ is the total number of agents. Two agents are considered to be interacting upon collision. At the end of an evaluation run, this interaction matrix is normalized to construct the network. Nodes in the network represent agents, and edges are created between nodes if their interaction value exceeds a specified threshold ($0.01$). The actual values from the interaction matrix are used as edge weights, and each node is annotated with the health status of the corresponding agent.
+To evaluate whether social distancing patterns emerge in agent behavior, we transform agent interactions into a network and analyze its structure, following approaches demonstrated in Stroeymeyt et al. (2018) \cite{Stroeymeyt2018}. Throughout each evaluation step, interactions between agents are tracked and recorded in an $n \times n$ interaction matrix, where $n$ is the total number of agents. Two agents are considered to be interacting upon collision. At the end of an evaluation run, this interaction matrix is normalized to construct the network. Nodes in the network represent agents, and edges are created between nodes if their interaction value exceeds a specified threshold ($0.01$). The actual values from the interaction matrix are used as edge weights, and each node is annotated with the health status of the corresponding agent.
 
 This network is then used to calculate appropriate network measures such as clustering, modularity (between infected and non-infected), network density and more. This allows us to get a better understanding of how agents are interacting with one another. We expect all of the mentioned metrics to increase as same health status agents interact more between themselves.
 
@@ -214,21 +211,7 @@ In the random network, no clear structure is apparent. However, in the learned n
     \label{fig:filtered_net}
 \end{figure}
 
-In the filtered network, it is clearly observed that infected agents interact much less with healthy agents. To gain a deeper understanding of the networks and to assess metrics that are harder to discern from visual inspection alone, we calculated several network metrics, which are presented in Table \ref{tab:metrics}. These metrics are relevant to pathogen transmission. 
-
-\begin{table}[htb]
-    \centering
-    \begin{tabular}{l|cc}
-        \textbf{Net. Metric} & \textbf{Random} & \textbf{Trained}   \\ \hline
-        Clustering        & 0.041  & 0.064     \\
-        Modularity        & -0.016 & 0.050     \\
-        Density           & 0.728  & 0.779     \\
-        Efficiency        & 0.864  & 0.889    
-    \end{tabular}
-    \label{tab:metrics}
-\end{table}
-
-An increase in modularity suggests greater separation between the two groups, which leads to denser clusters and higher clustering values. These changes indicate that basic social distancing behavior has begun to emerge, with infected and healthy agents interacting less with each other. However, to gain a more comprehensive understanding of the agents' behavior and its impact on disease transmission, further testing is needed.
+In the filtered network, it is evident that infected agents interact significantly less with healthy agents. To gain deeper insights into these interactions and assess metrics beyond visual inspection, we analyzed key network properties relevant to pathogen transmission. Modularity increased from -0.016 (random) to 0.050 (trained), reflecting greater separation between groups and denser clusters. This trend is reinforced by a rise in clustering values from 0.041 (random) to 0.064 (trained). These changes suggest the emergence of basic social distancing behaviors, with infected and healthy agents reducing their interactions. However, further testing is needed to fully understand the impact of these behaviors on disease transmission.
 
 \begin{figure}[hbt]
     \centering
@@ -243,11 +226,12 @@ We also conducted some preliminary experiments with alternative methods of infor
 
 Unfortunately, this approach did not work as expected. We believe the issue lies in the fact that there isn't a clear correlation between the observations (pheromone concentrations) and the actions that would lead to better rewards. With the collision-based interaction system, agents simply adjust their movement to either avoid or approach other agents based on their health status, which leads to higher cumulative rewards. In contrast, with the pheromone system, agents detect a concentration but cannot determine the exact actions needed to improve their situation. Although theoretically, actions should be to stop (set force to 0) for positive pheromones and flee for negative ones, the lack of a direct feedback loop between pheromone detection and reward-driven actions made it challenging for the agents to effectively use the pheromone system.
 
+\newpage
 \section{Discussion and Future Work}
 
 As this is a preliminary report, we will use this discussion section to outline our future work.
 
-Our primary goal is to replicate the experiment described in \cite{Stroeymeyt2018}. To achieve this, we plan to perform multiple runs for three scenarios: random networks, learned networks without infected agents, and learned networks with infected agents. The random network will serve as a baseline to normalize the metrics from our learned networks. We will then compare changes in network structure before and after the introduction of a pathogen. Throughout these experiments, we will track the same agents in pairs of pre- and post-introduction conditions. Additionally, we may continue refining our reward policies or explore alternative information exchange mechanisms beyond simple collisions.
+Our primary goal is to replicate the experiment described in Stroeymeyt et al. (2018)\cite{Stroeymeyt2018}. To achieve this, we plan to perform multiple runs for three scenarios: random networks, learned networks without infected agents, and learned networks with infected agents. The random network will serve as a baseline to normalize the metrics from our learned networks. We will then compare changes in network structure before and after the introduction of a pathogen. Throughout these experiments, we will track the same agents in pairs of pre- and post-introduction conditions. Additionally, we may continue refining our reward policies or explore alternative information exchange mechanisms beyond simple collisions.
 
 As the final presentation requires a presentation video, we are thinking of implementing dynamic disease spread, where healthy agents can become infected, which would include infected agent mortality after a set number of time steps. This would allow us to directly visualize the effectiveness of social distancing by observing whether the disease dies off (due to infected agents not spreading the infection and eventually dying in isolation) or if all agents succumb to the pathogen.\\
 
