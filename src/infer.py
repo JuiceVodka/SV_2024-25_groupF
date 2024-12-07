@@ -1,4 +1,4 @@
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, DDPG
 from pps import PredatorPreySwarmEnv
 import supersuit as ss
 
@@ -14,7 +14,7 @@ env = ss.pettingzoo_env_to_vec_env_v1(env)
 env = ss.concat_vec_envs_v1(env, 1, base_class="stable_baselines3")
 
 # Load the saved model
-model = PPO.load("models/touch.zip")
+model = DDPG.load("models/testPen.zip")
 
 # Use the model for inference
 obs = env.reset()
@@ -27,6 +27,7 @@ for _ in range(max_ep_len):
 
 
 # Save images as a GIF
-# print(len(images))
-# import imageio
-# imageio.mimsave('evade.gif', images, fps=30)
+images = images[1:]
+print(len(images))
+import imageio
+imageio.mimsave('isolate.gif', images, fps=30)

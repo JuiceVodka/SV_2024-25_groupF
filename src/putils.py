@@ -27,7 +27,7 @@ def get_mass( m_e, n_e):
     return masses
 
 
-def get_focused(Pos, Vel, norm_threshold, width, remove_self):
+def get_focused(Pos, Vel, Inf, norm_threshold, width, remove_self):
     norms = np.sqrt( Pos[0,:]**2 + Pos[1,:]**2 )
     sorted_seq = np.argsort(norms)    
     Pos = Pos[:, sorted_seq]   
@@ -38,12 +38,15 @@ def get_focused(Pos, Vel, norm_threshold, width, remove_self):
         Pos = Pos[:,1:]  
         sorted_seq = sorted_seq[1:]                    
     Vel = Vel[:, sorted_seq]
+    Infected = Inf[sorted_seq].copy()
     target_Pos = np.zeros( (2, width) )
     target_Vel = np.zeros( (2, width) )
+    target_Infect = np.zeros( (width) )
     until_idx = np.min( [Pos.shape[1], width] )
     target_Pos[:, :until_idx] = Pos[:, :until_idx] 
     target_Vel[:, :until_idx] = Vel[:, :until_idx]
-    return target_Pos, target_Vel   
+    target_Infect[:until_idx] = Infected[:until_idx]
+    return target_Pos, target_Vel, target_Infect
 
 def get_dist_b2b(positions, L, is_periodic, sizes):
     """
@@ -84,7 +87,6 @@ def get_dist_b2b(positions, L, is_periodic, sizes):
             is_collide_b2b[i, j] = is_collide_b2b[j, i] = dist_edge < 0
 
     return d_b2b_center, -d_b2b_edge, is_collide_b2b
-
 
 def get_dist_b2w(positions, sizes, L):
     """

@@ -26,6 +26,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self._linAcc_e_max = 1
             self._angle_e_max = 0.5
             self._ep_len = 200
+            self._part_infected = 0.1
             
             # environment parameters
             self._is_periodic = True
@@ -60,7 +61,13 @@ class PredatorPreySwarmEnv(ParallelEnv):
         self._m = get_mass(self._m_e, self._n_e)  
         self._size, self._sizes = get_sizes(self._size_e, self._n_e)  
 
+        self.infected = {agent:False for agent in list(range(self._n_e))}
+        for i in np.random.choice(self.possible_agents, int(self._n_e*self._part_infected)):
+            self.infected[i] = True
+
         self.metrics_in_info = metrics_in_info
+        self.interactions = np.zeros((self._n_e, self._n_e), dtype=int)
+        self.recent_interactions = np.zeros((self._n_e, self._n_e), dtype=float)
         
     def observation_space(self, agent):
         return self.observation_spaces[agent]
@@ -96,6 +103,12 @@ class PredatorPreySwarmEnv(ParallelEnv):
         self._theta = np.pi * np.random.uniform(-1,1, (1, self._n_e))
         self._heading = np.concatenate((np.cos(self._theta), np.sin(self._theta)), axis=0)
         self.obs = self._get_obs()
+
+        self.infected = {agent:False for agent in list(range(self._n_e))}
+        for i in np.random.choice(self.possible_agents, int(self._n_e*self._part_infected)):
+            self.infected[i] = True
+        self.interactions = np.zeros((self._n_e, self._n_e), dtype=int)
+        self.recent_interactions = np.zeros((self._n_e, self._n_e), dtype=float)
         return self.obs, self._get_info()
 
 
@@ -107,17 +120,19 @@ class PredatorPreySwarmEnv(ParallelEnv):
             relPos_e2e = self._p - self._p[:,[i]]
             if self._is_periodic: relPos_e2e = make_periodic(relPos_e2e, self._L)
             relVel_e2e = self._heading - self._heading[:,[i]]
-            relPos_e2e, relVel_e2e = get_focused(relPos_e2e, relVel_e2e, self._FoV_e, self._topo_n_e2e, True)  
+            infected = np.array([self.infected[j] for j in range(self._n_e)])
+            relPos_e2e, relVel_e2e, infected = get_focused(relPos_e2e, relVel_e2e, infected, self._FoV_e, self._topo_n_e2e, True)  
 
             obs_escaper_pos = np.concatenate((self._p[:, [i]], relPos_e2e), axis=1)
             obs_escaper_vel = np.concatenate((self._dp[:, [i]], relVel_e2e), axis=1)
-            obs_escaper = np.concatenate((obs_escaper_pos, obs_escaper_vel), axis=0) 
+            obs_escaper_infected = np.concatenate((np.array([self.infected[i]]), infected), axis=0).reshape(1,self._topo_n_e2e+1)
+            obs_escaper = np.concatenate((obs_escaper_pos, obs_escaper_vel, obs_escaper_infected), axis=0) 
             
             self.obs[:self.obs_dim_escaper-2] = obs_escaper.T.reshape(-1)        
             self.obs[self.obs_dim_escaper-2:] = self._heading[:,i] # Own heading
             
             observations[i] = self.obs
-            
+
         return observations
 
     def _get_reward(self, a):        
@@ -126,9 +141,39 @@ class PredatorPreySwarmEnv(ParallelEnv):
         for i in range(self._n_e):
             for j in range(i):
                 if self._is_collide_b2b[i,j]:
-                    reward[i] = +1
-                    reward[j] = +1
+                    if self.infected[i] != self.infected[j]:
+                        reward[i] -= 1
+                        reward[j] -= 1
+                    else:
+                        reward[i] += 1 * (1 - self.recent_interactions[i, j])
+                        reward[j] += 1 * (1 - self.recent_interactions[i, j])
+                    self.recent_interactions[i, j] = 1
+        
+            # if np.mean([1 if x != 0 else 0 for x in self.recent_interactions[i, :]]) < 0.2:
+            #     reward[i] -= 1
+
         return reward
+    
+    # Healthy clustering with infected avoiding them
+    # if self.infected[i] != self.infected[j]:
+    #     reward[i] -= 1
+    #     reward[j] -= 1
+    # else:
+    #     reward[i] += 1
+    #     reward[j] += 1
+
+    # Added decreasing penalty for repeated interactions
+    # for j in range(i):
+    #     if self._is_collide_b2b[i,j]:
+    #         if self.infected[i] != self.infected[j]:
+    #             reward[i] -= 1
+    #             reward[j] -= 1
+    #         else:
+    #             reward[i] += 1 * (1 - self.recent_interactions[i, j])
+    #             reward[j] += 1 * (1 - self.recent_interactions[i, j])
+    #         self.recent_interactions[i, j] = 1
+    # if np.mean([1 if x != 0 else 0 for x in self.recent_interactions[i, :]]) < 0.2:
+    #     reward[i] -= 1
     
     def _get_info(self):
 
@@ -158,11 +203,12 @@ class PredatorPreySwarmEnv(ParallelEnv):
                     sf_b2b_all[2*j:2*(j+1),i] = - sf_b2b_all[2*i:2*(i+1),j]  
 
             sf_b2b = np.sum(sf_b2b_all, axis=1, keepdims=True).reshape(self._n_e,2).T 
+
             if self._is_periodic == False:
                 self.d_b2w, self.is_collide_b2w = get_dist_b2w(self._p, self._size, self._L)
                 sf_b2w = np.array([[1, 0, -1, 0], [0, -1, 0, 1]]).dot(self.is_collide_b2w * self.d_b2w) * self._k_wall   
-                df_b2w = np.array([[-1, 0, -1, 0], [0, -1, 0, -1]]).dot(self.is_collide_b2w*np.concatenate((self._dp, self._dp), axis=0))  *  self._c_wall   
-            
+                df_b2w = np.array([[-1, 0, -1, 0], [0, -1, 0, -1]]).dot(self.is_collide_b2w*np.concatenate((self._dp, self._dp), axis=0))  *  self._c_wall 
+
             if self._escaper_strategy == 'input':
                 pass
             elif self._escaper_strategy == 'static':
@@ -196,8 +242,17 @@ class PredatorPreySwarmEnv(ParallelEnv):
         else:
             self.timesteps_left -= 1      
             truncateds = {agent:False for agent in list(range(self._n_e))}
-    
+
+        self.recent_interactions *= 0.9
         self.obs = self._get_obs()
+
+
+        min_dist = 0.07 #self._size_e # TODO find reasonable value
+        for i in range(self._n_e):
+            for j in range(i):
+                if self._d_b2b_center[i,j] < min_dist:
+                    self.interactions[i, j] += 1
+
         return self.obs, self._get_reward(a), self.terminateds, truncateds, self._get_info()
 
     def render(self, mode="rgb_array"): 
@@ -211,10 +266,13 @@ class PredatorPreySwarmEnv(ParallelEnv):
             if self._render_traj: self.trajrender = []
             for i in range(self._n_e):
                 if self._render_traj: self.trajrender.append( rendering.Traj( list(zip(self._p_traj[:,0,i], self._p_traj[:,1,i])),  False) )
-                #agents.append( rendering.make_unicycle(self._size_e) )
-                agents.append( rendering.make_ant(self._size_e) )
-                agents[i].set_color_alpha(0, 0.333, 0.778, 1)
-                if self._render_traj: self.trajrender[i].set_color_alpha(0, 0.333, 0.778, 0.5)
+                agents.append( rendering.make_unicycle(self._size_e) )
+                if self.infected[i]:
+                    agents[i].set_color_alpha(0.778, 0.333, 0, 1)
+                    if self._render_traj: self.trajrender[i].set_color_alpha(0.778, 0.333, 0, 0.5)
+                else:
+                    agents[i].set_color_alpha(0, 0.333, 0.778, 1)
+                    if self._render_traj: self.trajrender[i].set_color_alpha(0, 0.333, 0.778, 0.5)
                 self.tf.append( rendering.Transform() )
                 agents[i].add_attr(self.tf[i])
                 self.viewer.add_geom(agents[i])
@@ -233,7 +291,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self.viewer = None
     
     def _get_observation_space(self):
-        self.obs_dim_escaper = ( 4 * self._topo_n_e2e ) + 6
+        self.obs_dim_escaper = ( 5 * self._topo_n_e2e ) + 7
         observation_space = spaces.Box(low=-np.inf, high=+np.inf, shape=(self.obs_dim_escaper, ), dtype=np.float32)
         return observation_space
 
@@ -245,29 +303,43 @@ class PredatorPreySwarmEnv(ParallelEnv):
         G = nx.Graph()
         G.add_nodes_from(list(range(self._n_e)))
         for i in range(self._n_e):
-            for j in range(i):
-                G.add_edge(i, j, distance=self._d_b2b_center[i,j])
+            if self.infected[i]:
+                G.nodes[i]['infected'] = True
+            else:
+                G.nodes[i]['infected'] = False
+        # for i in range(self._n_e):
+        #     for j in range(i):
+        #         G.add_edge(i, j, distance=self._d_b2b_center[i,j])
         return G
     
     def compute_metrics(self):
         G = self.env2nx()
-        min_dist = 0.2 # TODO find reasonable value
-        G_ = G.copy()
-        for edge in G.edges(data=True):
-            if edge[2]['distance'] > min_dist:
-                G_.remove_edge(edge[0], edge[1])
+        G_ = G.copy().to_undirected()
+
+        norm_interactions = self.interactions / np.max((np.max(self.interactions), 1))
+        # G_ = nx.Graph().to_undirected()
+        # G_.add_nodes_from(list(range(self._n_e)))
+        for i in range(self._n_e):
+            for j in range(i):
+                if norm_interactions[i, j] > 0.01:
+                    G_.add_edge(i, j, weight=norm_interactions[i, j])
         
         # METRICS CONSIDERED IN PAPER ########################################
         # md = ... # modularity between infected and non infected nodes
-        ac = nx.average_clustering(G_)
+        ac = nx.average_clustering(G_, weight='weight')
+
+        # edges_to_remove = [(i, j) for i, j, w in G_.edges(data=True) if w['weight'] < 0.05]
+        # G_.remove_edges_from(edges_to_remove)
         dens = nx.density(G_)
+        md = nx.algorithms.community.quality.modularity(G_, [{i for i in range(self._n_e) if self.infected[i]}, {i for i in range(self._n_e) if not self.infected[i]}])
         # diam = ... # network diameter, but network is not connected, adjust
         ne = nx.global_efficiency(G_)
         # dc = nx.betweenness_centrality(G_) # or some other centrality measure, but for whole network
+        dc = nx.degree_centrality(G_)
+        avg_dc = np.mean(list(dc.values()))
         # as = ... # assortativity, node specific
         ######################################################################
-        
-        return {'average_clustering': ac, 'network_efficiency': ne, 'density': dens}
+        return {'average_clustering': ac, 'network_efficiency': ne, 'density': dens, 'modularity': md, 'average_degree_centrality': avg_dc, 'G': G_}
 
 if __name__ == '__main__':
     # parse json file
