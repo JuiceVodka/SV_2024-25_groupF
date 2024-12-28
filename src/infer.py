@@ -22,13 +22,14 @@ images = []
 for _ in range(max_ep_len):
     action, _states = model.predict(obs)
     obs, rewards, dones, info = env.step(action)
+    print(info[-1])
     img = env.render(mode="rgb_array")
     if img is not None:
         #print(img.shape)
         images.append(img)
 
-
+print(info)
 # Save images as a GIF
 # print(len(images))
-import imageio
-imageio.mimsave('infect2.gif', images, fps=30)
+#import imageio
+#imageio.mimsave('infect2.gif', images, fps=30)

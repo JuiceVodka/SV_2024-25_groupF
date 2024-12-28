@@ -280,9 +280,9 @@ class PredatorPreySwarmEnv(ParallelEnv):
         G = self.env2nx()
         min_dist = 0.2 # TODO find reasonable value
         G_ = G.copy()
-        for edge in G.edges(data=True):
-            if edge[2]['distance'] > min_dist:
-                G_.remove_edge(edge[0], edge[1])
+        #for edge in G.edges(data=True):
+        #    if edge[2]['distance'] > min_dist:
+        #        G_.remove_edge(edge[0], edge[1])
         
         # METRICS CONSIDERED IN PAPER ########################################
         # md = ... # modularity between infected and non infected nodes
