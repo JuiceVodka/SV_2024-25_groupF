@@ -27,8 +27,6 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self._angle_e_max = 0.5
             self._ep_len = 200
             self._part_infected = 0.1
-            self._spread = True
-            self._infection_chance = 0.9
             
             # environment parameters
             self._is_periodic = True
@@ -82,7 +80,6 @@ class PredatorPreySwarmEnv(ParallelEnv):
         return [seed]
 
     def reset(self, seed=None, options=None):
-        
         if seed is not None:
             self.seed(seed)
             
@@ -103,14 +100,19 @@ class PredatorPreySwarmEnv(ParallelEnv):
         self._dp = np.zeros((2, self._n_e))                  
         self._ddp = np.zeros((2, self._n_e))                                     
         self._theta = np.pi * np.random.uniform(-1,1, (1, self._n_e))
-        self._heading = np.concatenate((np.cos(self._theta), np.sin(self._theta)), axis=0)
-        self.obs = self._get_obs()
+        self._heading = np.concatenate((np.cos(self._theta), np.sin(self._theta)), axis=0)        
+                        
+        self.task_state = {agent: np.random.choice([0, 1], p=[0.5, 0.5]) for agent in list(range(self._n_e))}
+        # x position of the agent
+        self.prev_position = {agent: self._p[0, agent] for agent in list(range(self._n_e))}
 
         self.infected = {agent:False for agent in list(range(self._n_e))}
         for i in np.random.choice(self.possible_agents, int(self._n_e*self._part_infected)):
-           self.infected[i] = True
+            self.infected[i] = True
         self.interactions = np.zeros((self._n_e, self._n_e), dtype=int)
         self.recent_interactions = np.zeros((self._n_e, self._n_e), dtype=float)
+        
+        self.obs = self._get_obs()
         return self.obs, self._get_info()
 
 
@@ -125,10 +127,13 @@ class PredatorPreySwarmEnv(ParallelEnv):
             infected = np.array([self.infected[j] for j in range(self._n_e)])
             relPos_e2e, relVel_e2e, infected = get_focused(relPos_e2e, relVel_e2e, infected, self._FoV_e, self._topo_n_e2e, True)  
 
+            obs_escaper = []
             obs_escaper_pos = np.concatenate((self._p[:, [i]], relPos_e2e), axis=1)
             obs_escaper_vel = np.concatenate((self._dp[:, [i]], relVel_e2e), axis=1)
             obs_escaper_infected = np.concatenate((np.array([self.infected[i]]), infected), axis=0).reshape(1,self._topo_n_e2e+1)
             obs_escaper = np.concatenate((obs_escaper_pos, obs_escaper_vel, obs_escaper_infected), axis=0) 
+            
+            obs_escaper = np.append(obs_escaper, self.task_state[i])
             
             self.obs[:self.obs_dim_escaper-2] = obs_escaper.T.reshape(-1)        
             self.obs[self.obs_dim_escaper-2:] = self._heading[:,i] # Own heading
@@ -138,28 +143,76 @@ class PredatorPreySwarmEnv(ParallelEnv):
         return observations
 
     def _get_reward(self, a):        
+        
+        
         reward = {agent:0 for agent in list(range(self._n_e))}
-        # check if the agents are colliding, if so, give a negative reward to both agents
+        
+        # ADDED TASK ############################################################ 
+        # loop through all agents and update tasks:
+        # if agent task_state is 0 and is colliding with left wall, set task_state to 1
+        # if agent task_state is 1 and is colliding with right wall, set task_state to 0
         for i in range(self._n_e):
+            
+            # TASK REWARDS 
+            colliding_left = self.is_collide_b2w[0, i]
+            colliding_right = self.is_collide_b2w[2, i]
+            if self.task_state[i] == 0:
+                if colliding_left:
+                    self.task_state[i] = 1
+                    reward[i] = 1
+                elif self._p[0, i] < self.prev_position[i]:
+                    reward[i] = 0.1                   
+                
+            elif self.task_state[i] == 1:
+                if colliding_right:
+                    self.task_state[i] = 0
+                    reward[i] = 1
+                elif self._p[0, i] > self.prev_position[i]:
+                    reward[i] = 0.1
+                
+            # UPDATE POSITION
+            self.prev_position[i] = self._p[0, i]
+            
+            # INFECTION REWARDS
             for j in range(i):
                 if self._is_collide_b2b[i,j]:
                     if self.infected[i] != self.infected[j]:
                         reward[i] -= 1
                         reward[j] -= 1
-                        if self._spread:
-                            transmission = np.random.choice([1, 0], p=[self._infection_chance, 1-self._infection_chance])
-                            if transmission:
-                                self.infected[i] = True
-                                self.infected[j] = True
                     else:
-                        reward[i] += 1 * (1 - self.recent_interactions[i, j])
-                        reward[j] += 1 * (1 - self.recent_interactions[i, j])
-                    self.recent_interactions[i, j] = 1
+                        reward[i] += 0.1
+                        reward[j] += 0.1
+                        
+                    # else:
+                    #     reward[i] += 1 * (1 - self.recent_interactions[i, j])
+                    #     reward[j] += 1 * (1 - self.recent_interactions[i, j])
+            #         self.recent_interactions[i, j] = 1
         
             # if np.mean([1 if x != 0 else 0 for x in self.recent_interactions[i, :]]) < 0.2:
             #     reward[i] -= 1
-
+        
+        # print(reward)
         return reward
+                
+        
+        
+        
+        # check if the agents are colliding, if so, give a negative ¸ to both agents
+        # for i in range(self._n_e):
+        #     for j in range(i):
+        #         if self._is_collide_b2b[i,j]:
+        #             if self.infected[i] != self.infected[j]:
+        #                 reward[i] -= 1
+        #                 reward[j] -= 1
+        #             else:
+        #                 reward[i] += 1 * (1 - self.recent_interactions[i, j])
+        #                 reward[j] += 1 * (1 - self.recent_interactions[i, j])
+        #             self.recent_interactions[i, j] = 1
+        
+        #     if np.mean([1 if x != 0 else 0 for x in self.recent_interactions[i, :]]) < 0.2:
+        #         reward[i] -= 1
+
+        # return reward
     
     # Healthy clustering with infected avoiding them
     # if self.infected[i] != self.infected[j]:
@@ -215,7 +268,8 @@ class PredatorPreySwarmEnv(ParallelEnv):
                 self.d_b2w, self.is_collide_b2w = get_dist_b2w(self._p, self._size, self._L)
                 sf_b2w = np.array([[1, 0, -1, 0], [0, -1, 0, 1]]).dot(self.is_collide_b2w * self.d_b2w) * self._k_wall   
                 df_b2w = np.array([[-1, 0, -1, 0], [0, -1, 0, -1]]).dot(self.is_collide_b2w*np.concatenate((self._dp, self._dp), axis=0))  *  self._c_wall 
-
+                
+                
             if self._escaper_strategy == 'input':
                 pass
             elif self._escaper_strategy == 'static':
@@ -266,24 +320,23 @@ class PredatorPreySwarmEnv(ParallelEnv):
         
         if not self.viewer and mode in ["human", "rgb_array"]:
             import rendering
-            self.viewer = rendering.Viewer(1000, 1000)
+            self.viewer = rendering.Viewer(250, 250)
             self.viewer.set_bounds(-1, 1, -1, 1.)
-            self.agentsC = []
+            agents = []
             self.tf = []
             if self._render_traj: self.trajrender = []
             for i in range(self._n_e):
                 if self._render_traj: self.trajrender.append( rendering.Traj( list(zip(self._p_traj[:,0,i], self._p_traj[:,1,i])),  False) )
-                self.agentsC.append( rendering.make_unicycle(self._size_e) )
+                agents.append( rendering.make_unicycle(self._size_e) )
                 if self.infected[i]:
-                    print(i)
-                    self.agentsC[i].set_color_alpha(0.778, 0.333, 0, 1)
+                    agents[i].set_color_alpha(0.778, 0.333, 0, 1)
                     if self._render_traj: self.trajrender[i].set_color_alpha(0.778, 0.333, 0, 0.5)
                 else:
-                    self.agentsC[i].set_color_alpha(0, 0.333, 0.778, 1)
+                    agents[i].set_color_alpha(0, 0.333, 0.778, 1)
                     if self._render_traj: self.trajrender[i].set_color_alpha(0, 0.333, 0.778, 0.5)
                 self.tf.append( rendering.Transform() )
-                self.agentsC[i].add_attr(self.tf[i])
-                self.viewer.add_geom(self.agentsC[i])
+                agents[i].add_attr(self.tf[i])
+                self.viewer.add_geom(agents[i])
                 if self._render_traj: self.viewer.add_geom(self.trajrender[i])
                 
         elif self.viewer and mode in ["human", "rgb_array"]:
@@ -291,10 +344,6 @@ class PredatorPreySwarmEnv(ParallelEnv):
                 self.tf[i].set_rotation(self._theta[0,i])
                 self.tf[i].set_translation(self._p[0,i], self._p[1,i])
                 if self._render_traj: self.trajrender[i].set_traj(list(zip(self._p_traj[:,0,i], self._p_traj[:,1,i])))
-                if self.infected[i]:
-                    self.trajrender[i].set_color_alpha(0.778, 0.333, 0, 1)
-                    self.agentsC[i].set_color_alpha(0.778, 0.333, 0, 1)
-                    if self._render_traj: self.trajrender[i].set_color_alpha(0.778, 0.333, 0, 0.5)
             return self.viewer.render(return_rgb_array=mode=="rgb_array")
     
     def close(self):
@@ -303,7 +352,8 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self.viewer = None
     
     def _get_observation_space(self):
-        self.obs_dim_escaper = ( 5 * self._topo_n_e2e ) + 7
+        # self.obs_dim_escaper = ( 5 * self._topo_n_e2e ) + 7
+        self.obs_dim_escaper = ( 5 * self._topo_n_e2e ) + 8
         observation_space = spaces.Box(low=-np.inf, high=+np.inf, shape=(self.obs_dim_escaper, ), dtype=np.float32)
         return observation_space
 

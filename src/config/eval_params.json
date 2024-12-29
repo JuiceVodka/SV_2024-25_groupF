@@ -10,10 +10,8 @@
     "linVel_e_max": 0.5,
     "linAcc_e_max": 1,
     "angle_e_max": 0.5,
-    "ep_len": 200,
+    "ep_len": 2000,
     "part_infected": 0.2,
-    "spread": true,
-    "infection_chance": 0.1,
 
     "is_periodic": false,
     "L": 1,

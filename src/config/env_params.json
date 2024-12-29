@@ -1,19 +1,17 @@
 {
-    "n_e": 50,
+    "n_e": 1,
     "escaper_strategy": "input",
     "act_dim_escaper": 2,
     "m_e": 1,
     "size_e": 0.035,
-    "topo_n_e2e": 6,
-    "FoV_e": 5,
-    "sensitivity": 1,
+    "topo_n_e2e": 8,
+    "FoV_e": 7,
+    "sensitivity": 0.5,
     "linVel_e_max": 0.5,
     "linAcc_e_max": 1,
     "angle_e_max": 0.5,
     "ep_len": 1000,
-    "part_infected": 0.1,
-    "spread": true,
-    "infection_chance": 0.1,
+    "part_infected": 0,
 
     "is_periodic": false,
     "L": 1,
@@ -25,5 +23,5 @@
     "n_frames": 1,
 
     "render_traj": true,
-    "traj_len": 30
+    "traj_len": 15
 }
