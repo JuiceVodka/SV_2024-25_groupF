@@ -33,4 +33,4 @@ total_timesteps = 600_000 #TODO get better value
 model.learn(total_timesteps=total_timesteps, callback=eval_callback, progress_bar=True)
 
 # Save the model
-model.save("models/DecPenPPO")
+model.save("models/DecPenNewPPO")

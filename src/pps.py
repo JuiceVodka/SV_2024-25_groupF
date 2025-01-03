@@ -9,7 +9,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
     
     metadata = {"render.modes": ["human", "rgb_array", "pygame"], "video.frames_per_second": 30}
     
-    def __init__(self, config=None, render_mode=None, metrics_in_info=False):
+    def __init__(self, config=None, render_mode=None, metrics_in_info=False, infect=True):
         # Setting up the environment parameters
         if config is None:
             print('Using default config')
@@ -63,9 +63,15 @@ class PredatorPreySwarmEnv(ParallelEnv):
         self._m = get_mass(self._m_e, self._n_e)  
         self._size, self._sizes = get_sizes(self._size_e, self._n_e)  
 
+        to_infect = np.random.choice(self.possible_agents, int(self._n_e*self._part_infected))
+        self.to_infect = {agent:False for agent in list(range(self._n_e))}
+        for i in to_infect:
+            self.to_infect[i] = True
+
+        self.is_infect = infect
         self.infected = {agent:False for agent in list(range(self._n_e))}
-        for i in np.random.choice(self.possible_agents, int(self._n_e*self._part_infected)):
-            self.infected[i] = True
+        if self.is_infect:
+            self.infected = self.to_infect.copy()
 
         self.metrics_in_info = metrics_in_info
         self.interactions = np.zeros((self._n_e, self._n_e), dtype=int)
@@ -80,6 +86,12 @@ class PredatorPreySwarmEnv(ParallelEnv):
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
+    
+    def infect(self):
+        self.infected = self.to_infect.copy()
+
+    def clear_network(self):
+        self.interactions = np.zeros((self._n_e, self._n_e), dtype=int)
 
     def reset(self, seed=None, options=None):
         
@@ -106,9 +118,10 @@ class PredatorPreySwarmEnv(ParallelEnv):
         self._heading = np.concatenate((np.cos(self._theta), np.sin(self._theta)), axis=0)
         self.obs = self._get_obs()
 
-        self.infected = {agent:False for agent in list(range(self._n_e))}
-        for i in np.random.choice(self.possible_agents, int(self._n_e*self._part_infected)):
-           self.infected[i] = True
+        if self.is_infect:
+            self.infected = {agent:False for agent in list(range(self._n_e))}
+        if self.is_infect:
+            self.infected = self.to_infect.copy()
         self.interactions = np.zeros((self._n_e, self._n_e), dtype=int)
         self.recent_interactions = np.zeros((self._n_e, self._n_e), dtype=float)
         return self.obs, self._get_info()
@@ -154,10 +167,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
                     else:
                         reward[i] += 1 * (1 - self.recent_interactions[i, j])
                         reward[j] += 1 * (1 - self.recent_interactions[i, j])
-                    self.recent_interactions[i, j] = 1
-        
-            # if np.mean([1 if x != 0 else 0 for x in self.recent_interactions[i, :]]) < 0.2:
-            #     reward[i] -= 1
+                    self.recent_interactions[i, j] = 1.2
 
         return reward
     
@@ -181,6 +191,18 @@ class PredatorPreySwarmEnv(ParallelEnv):
     #         self.recent_interactions[i, j] = 1
     # if np.mean([1 if x != 0 else 0 for x in self.recent_interactions[i, :]]) < 0.2:
     #     reward[i] -= 1
+
+    #good result with dim factor 0.95
+    # for i in range(self._n_e):
+    #         for j in range(i):
+    #             if self._is_collide_b2b[i,j]:
+    #                 if self.infected[i] != self.infected[j]:
+    #                     reward[i] -= 1
+    #                     reward[j] -= 1
+    #                 else:
+    #                     reward[i] += 1 * (1 - self.recent_interactions[i, j])
+    #                     reward[j] += 1 * (1 - self.recent_interactions[i, j])
+    #                 self.recent_interactions[i, j] = 1.2
     
     def _get_info(self):
 
@@ -250,7 +272,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self.timesteps_left -= 1      
             truncateds = {agent:False for agent in list(range(self._n_e))}
 
-        self.recent_interactions *= 0.9
+        self.recent_interactions *= 0.95
         self.obs = self._get_obs()
 
 
@@ -315,7 +337,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
         G = nx.Graph()
         G.add_nodes_from(list(range(self._n_e)))
         for i in range(self._n_e):
-            if self.infected[i]:
+            if self.to_infect[i]:
                 G.nodes[i]['infected'] = True
             else:
                 G.nodes[i]['infected'] = False

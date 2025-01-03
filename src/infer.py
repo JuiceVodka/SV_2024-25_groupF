@@ -14,7 +14,7 @@ env = ss.pettingzoo_env_to_vec_env_v1(env)
 env = ss.concat_vec_envs_v1(env, 1, base_class="stable_baselines3")
 
 # Load the saved model
-model = PPO.load("models/DecPenPPO.zip")
+model = PPO.load("models/DecPenNewPPO.zip")
 
 # Use the model for inference
 obs = env.reset()
@@ -30,4 +30,4 @@ for _ in range(max_ep_len):
 images = images[1:]
 print(len(images))
 import imageio
-imageio.mimsave('isolate.gif', images, fps=30)
+imageio.mimsave('DecPenNewPPO.gif', images, fps=30)
