@@ -93,6 +93,8 @@ To further enhance agent behavior, we introduced optional reward components that
 These optional components provide additional flexibility to tailor agent behavior for specific objectives while preserving the simplicity and general applicability of the core reward system. Together, the diminishing reward mechanism and optional components have demonstrated their effectiveness in producing well-performing agents, with interaction networks resembling real-world examples. Ant behavior continues to serve as a baseline for comparison, validating the model's adaptability across species and scenarios.
 
 **TODO: extra task improves results, explain how the task rewards agents**
+Introducing an external task can improve agent performance by adding complexity that better reflects real-world dynamics and it enhances the model’s ability to evaluate and simulate realistic agent interactions and responses to disease transmission. 
+The external task we chose involves agents alternating between touching the left and right walls. At initialization, each agent is randomly assigned a task to either touch the left or right wall. Agents are rewarded with +0.1 for moving in the correct direction and +1 for successfully touching the assigned wall. Once the agent touches the correct wall, its task is flipped to the opposite wall, encouraging the agent to continually adapt its movement strategy.
 
 ## Results
 
