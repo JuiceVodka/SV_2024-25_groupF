@@ -124,6 +124,7 @@ Emergent social distancing behavior should also be clearly observable in the sim
 ![Alt text](figures/trained_viz.png "Grouping")
 
 **TODO: fix to argument better whats going on**
+
 Figure \ref{fig:trained_viz} visualizes a simulation of our best-performing policy. The orange ants represent infected ants, while the black ants represent healthy ones. Although this figure appears to indicate the behavior described by the network statistics (with same-health-status agents tending to group), it should be noted that the separation between healthy and infected agents is not as pronounced as hoped. This is primarily due to the fact that interactions are based on collisions, and agents only perceive the 6-8 nearest agents in their field of view (FoV). This limitation causes agents of different statuses to often move much closer to each other than intended.
 
 
