@@ -96,7 +96,7 @@ These optional components provide additional flexibility to tailor agent behavio
 
 ## Results
 
-**COMMENT: Moved evaluation measures to results and directly combined it with our results, IMO it flows/reads better this way**
+**COMMENT: Moved evaluation measures to results and directly combined it with our results, IMO it flows/reads better this way $\rightarrow$ explain the evaluation measure, present result, explain/argument result**
 
 To evaluate whether social distancing patterns emerge in agent behavior, we transform agent interactions into a network and analyze its structure, following approaches demonstrated in Stroeymeyt et al. (2018) \cite{Stroeymeyt2018}. Throughout each evaluation step, interactions between agents are tracked and recorded in an $n \times n$ interaction matrix, where $n$ is the total number of agents. Two agents are considered to be interacting upon collision. At the end of an evaluation run, this interaction matrix is normalized to construct the network. Nodes in the network represent agents, and edges are created between nodes if their interaction value exceeds a specified threshold ($0.01$). The actual values from the interaction matrix are used as edge weights, and each node is annotated with the health status of the corresponding agent.
 
@@ -120,7 +120,7 @@ In the filtered network, it is evident that infected agents interact significant
 
 Emergent social distancing behavior should also be clearly observable in the simulation visualization. We expect healthy agents to avoid infected ones, and vice versa. This behavior will be especially evident if we increase the agent density within the environment. In such cases, we should observe infected agents becoming isolated, forming empty regions around them, while healthy agents fill the remaining space in the simulation.
 
-**TODO: update image with latest model (frame where sick agents get grouped)**
+**TODO: update image with latest model (frame where sick agents get grouped) $\rightarrow$ probably best to do frame 1 of sim and last frame of sim**
 ![Alt text](figures/trained_viz.png "Grouping")
 
 **TODO: fix to argument better whats going on**
@@ -136,7 +136,7 @@ Unfortunately, this approach did not work as expected. We believe the issue lies
 
 ## Conclusion
 
-TODO all
+**TODO all**
 - successful emergent social distancing
 - comparable networks to real observations
 - successful with simple reward policy, with noted improvements when included with an extra task
