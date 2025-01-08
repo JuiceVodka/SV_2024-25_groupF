@@ -112,11 +112,23 @@ In the random network, no clear structure is apparent. However, in the learned n
 
 This network is then used to calculate appropriate network measures such as clustering, modularity (between infected and non-infected), network density and more. This allows us to get a better understanding of how agents are interacting with one another. We expect all of the mentioned metrics to increase as same health status agents interact more between themselves.
 
-In the filtered network, it is evident that infected agents interact significantly less with healthy agents. To gain deeper insights into these interactions and assess metrics beyond visual inspection, we analyzed key network properties relevant to pathogen transmission. Modularity increased from -0.016 (random) to 0.050 (trained), reflecting greater separation between groups and denser clusters. This trend is reinforced by a rise in clustering values from 0.041 (random) to 0.064 (trained). These changes suggest the emergence of basic social distancing behaviors, with infected and healthy agents reducing their interactions. However, further testing is needed to fully understand the impact of these behaviors on disease transmission.
+In the filtered network, it is evident that infected agents interact significantly less with healthy agents. To gain deeper insights into these interactions and assess metrics beyond visual inspection, we analyzed key network properties relevant to pathogen transmission. Modularity increased from -0.0005 (random) to 0.25 (trained), reflecting greater separation between groups and denser clusters. This trend is reinforced by a rise in clustering values from 0.056 (random) to 0.066 (trained). These changes suggest the emergence of basic social distancing behaviors, with infected and healthy agents reducing their interactions. According to \cite{
+@article{volz2011effects,
+  title={Effects of heterogeneous and clustered contact patterns on infectious disease dynamics},
+  author={Volz, Erik M and Miller, Joel C and Galvani, Alison and Ancel Meyers, Lauren},
+  journal={PLoS computational biology},
+  volume={7},
+  number={6},
+  pages={e1002042},
+  year={2011},
+  publisher={Public Library of Science San Francisco, USA}
+}}, both of these propertie serve to reduce the infection spread.
 
-**TODO: more text regarding the following difference graph (the +/- bar graph)**
+**DONE: more text regarding the following difference graph (the +/- bar graph)**
+To investigate pathogen-induced changes in network properties, we utilized our best-performing model and conducted 10 experiments. In each experiment, we initially designated individuals to be infected and performed a baseline evaluation episode with 10,000 steps, during which no individuals were actually infected. Metrics such as clustering, modularity, and network efficiency were recorded. Subsequently, the designated individuals were infected, and the evaluation was repeated. We then calculated the differences in these metrics before and after infection. The results, presented in \ref{fig:induced_changes}, show a significant increase in modularity, as the infected agents segregated from the healthy population. Additionally, network efficiency decreased, indicating an increase in the shortest paths within the network, which is consistent with reduced pathogen spread. Contrary to our expectations, clustering also decreased. This anomaly can be attributed to the initial absence of infected agents, leading to a highly connected network with a high clustering coefficient of 0.138 due to the agents’ tendency to form dense groups.
 
 **TODO: image of metrics differences**
+![Alt text](figures/induced_changes.png "Induced changes")
 
 **TODO: change the paragraph to be more inline with our observations (grouping/"filtering" of sick agents)**
 
