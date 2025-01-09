@@ -65,6 +65,7 @@ The above mention basic reward policy is demonstrated in isolation with all heal
 
 ![Alt text](figures/avoid.png "Avoid") ![Alt text](figures/touch.png "Touch")
 
+**DONE: diminishing reward gets removed (not used), but we should mention what we tried**
 We experimented with a \textbf{diminishing reward system} where consecutive interactions would be decreased by a diminishing penalty, which worked well to prevent agent clustering, but decided against using it in the final model as it was deemed too engineered.
 $$
 \mathrm{reward}(a, b) = \begin{cases}
@@ -99,11 +100,8 @@ The external task we chose involves agents alternating between touching the left
 
 To evaluate whether social distancing patterns emerge in agent behavior, we transform agent interactions into a network and analyze its structure, following approaches demonstrated in Stroeymeyt et al. (2018) \cite{Stroeymeyt2018}. Throughout each evaluation step, interactions between agents are tracked and recorded in an $n \times n$ interaction matrix, where $n$ is the total number of agents. Two agents are considered to be interacting upon collision. At the end of an evaluation run, this interaction matrix is normalized to construct the network. Nodes in the network represent agents, and edges are created between nodes if their interaction value exceeds a specified threshold ($0.01$). The actual values from the interaction matrix are used as edge weights, and each node is annotated with the health status of the corresponding agent.
 
-We tested our trained model by evaluating it on an episode of 5000 steps with both a random untrained network and a trained network. For each case, we constructed a network of all the interactions throughout the episode, which is displayed in Figure \ref{fig:nets_unfiltered}. In the network visualizations, healthy agents are colored blue, and infected agents are colored orange.
-
-**TODO: the following paragraph needs to be included better or deleted**
-
-In the random network, no clear structure is apparent. However, in the learned network, a separation begins to emerge, with infected agents interacting less with healthy ones, but still interacting with other infected agents. This behavior aligns with our expectations. The structure becomes more pronounced when we weight the edges based on the number of interactions between agents, better representing significant interactions. The weighted network is shown in Figure \ref{fig:filtered_net}.
+**DONE: the following paragraph needs to be included better or deleted**
+We tested our trained model by evaluating it on an episode of 10000 steps with both a random untrained network and a trained network. For each case, we constructed a network of all the interactions throughout the episode which helped us better understand the behaviour of our agents. In the random network, no clear structure was apparent, and the agents formed a mostly fully connected network. In the learned network, however, a separation begins to emerge, with infected agents interacting less with healthy ones, but still interacting with other infected agents. This behavior aligns with our expectations. The structure becomes more pronounced when we weigh the edges based on the number of interactions between agents, better representing significant interactions. The weighted network is shown in Figure \ref{fig:filtered_net}.
 
 ![Alt text](figures/filteredNet.png "Network (filtered)")
 
