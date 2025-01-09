@@ -9,7 +9,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
     
     metadata = {"render.modes": ["human", "rgb_array", "pygame"], "video.frames_per_second": 30}
     
-    def __init__(self, config=None, render_mode=None, metrics_in_info=False):
+    def __init__(self, config=None, render_mode=None, metrics_in_info=False, infect=True):
         # Setting up the environment parameters
         if config is None:
             print('Using default config')
@@ -61,9 +61,15 @@ class PredatorPreySwarmEnv(ParallelEnv):
         self._m = get_mass(self._m_e, self._n_e)  
         self._size, self._sizes = get_sizes(self._size_e, self._n_e)  
 
+        to_infect = np.random.choice(self.possible_agents, int(self._n_e*self._part_infected))
+        self.to_infect = {agent:False for agent in list(range(self._n_e))}
+        for i in to_infect:
+            self.to_infect[i] = True
+
+        self.is_infect = infect
         self.infected = {agent:False for agent in list(range(self._n_e))}
-        for i in np.random.choice(self.possible_agents, int(self._n_e*self._part_infected)):
-            self.infected[i] = True
+        if self.is_infect:
+            self.infected = self.to_infect.copy()
 
         self.metrics_in_info = metrics_in_info
         self.interactions = np.zeros((self._n_e, self._n_e), dtype=int)
@@ -78,6 +84,12 @@ class PredatorPreySwarmEnv(ParallelEnv):
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
+    
+    def infect(self):
+        self.infected = self.to_infect.copy()
+
+    def clear_network(self):
+        self.interactions = np.zeros((self._n_e, self._n_e), dtype=int)
 
     def reset(self, seed=None, options=None):
         if seed is not None:
@@ -106,9 +118,10 @@ class PredatorPreySwarmEnv(ParallelEnv):
         # x position of the agent
         self.prev_position = {agent: self._p[0, agent] for agent in list(range(self._n_e))}
 
-        self.infected = {agent:False for agent in list(range(self._n_e))}
-        for i in np.random.choice(self.possible_agents, int(self._n_e*self._part_infected)):
-            self.infected[i] = True
+        if self.is_infect:
+            self.infected = {agent:False for agent in list(range(self._n_e))}
+        if self.is_infect:
+            self.infected = self.to_infect.copy()
         self.interactions = np.zeros((self._n_e, self._n_e), dtype=int)
         self.recent_interactions = np.zeros((self._n_e, self._n_e), dtype=float)
         
@@ -365,7 +378,7 @@ class PredatorPreySwarmEnv(ParallelEnv):
         G = nx.Graph()
         G.add_nodes_from(list(range(self._n_e)))
         for i in range(self._n_e):
-            if self.infected[i]:
+            if self.to_infect[i]:
                 G.nodes[i]['infected'] = True
             else:
                 G.nodes[i]['infected'] = False
