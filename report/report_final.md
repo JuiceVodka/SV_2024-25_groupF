@@ -106,7 +106,7 @@ We tested our trained model by evaluating it on an episode of 5000 steps with bo
 
 **TODO: the following paragraph needs to be included better or deleted**
 
-In the random network, no clear structure is apparent. However, in the learned network, a separation begins to emerge, with infected agents interacting less with healthy ones, but still interacting with other infected agents. This behavior aligns with our expectations. The structure becomes more pronounced when we filter the network by keeping only edges with weights greater than 0.2, representing significant interactions. The filtered network is shown in Figure \ref{fig:filtered_net}.
+In the random network, no clear structure is apparent. However, in the learned network, a separation begins to emerge, with infected agents interacting less with healthy ones, but still interacting with other infected agents. This behavior aligns with our expectations. The structure becomes more pronounced when we weight the edges based on the number of interactions between agents, better representing significant interactions. The weighted network is shown in Figure \ref{fig:filtered_net}.
 
 ![Alt text](figures/filteredNet.png "Network (filtered)")
 
