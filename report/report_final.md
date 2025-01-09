@@ -65,16 +65,13 @@ The above mention basic reward policy is demonstrated in isolation with all heal
 
 ![Alt text](figures/avoid.png "Avoid") ![Alt text](figures/touch.png "Touch")
 
-**TODO: diminishing reward gets removed (not used), but we should mention what we tried**
-~~Building on this foundation, we introduced a \textbf{diminishing reward system} to refine agent behavior further. This system rewarded agents for diverse interactions while penalizing risky collisions. To prevent excessive rewards from repeated interactions between the same agents, we incorporated a diminishing factor based on recent interactions:~~
+We experimented with a \textbf{diminishing reward system} where consecutive interactions would be decreased by a diminishing penalty, which worked well to prevent agent clustering, but decided against using it in the final model as it was deemed too engineered.
 $$
 \mathrm{reward}(a, b) = \begin{cases}
     -\lambda & \text{if } sick(a) \neq sick(b) \\ 
     +\sigma * \gamma (1 - recent(a,b)) & \text{otherwise.}
 \end{cases}
 $$
-
-~~Here, \texttt{recent(a,b)} is initialized to $1$ upon interaction and decreases by a factor of $0.9$ at each step. This mechanism ensures diminishing rewards for repeated collisions, encouraging diverse and meaningful interactions that better reflect real-world dynamics.~~
 
 To further enhance agent behavior, we introduced optional reward components that address specific aspects of agent-environment dynamics. These additions allow for greater adaptability to different scenarios:
 
