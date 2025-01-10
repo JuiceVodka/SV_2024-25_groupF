@@ -22,7 +22,10 @@ Our goal is to explore whether a basic policy can lead to the evolution of known
 ## Simulation setup
 
 ### Dependencies
-Just run the things below and install whatever dependencies you're missing (latest version). The only thing to note is that PyGlet requires an older version (1.5.27 works).
+Create the conda environment using environment.yaml.
+```
+conda env create --name SV --file=environment.yaml
+```
 
 ### Test simulation environment
 Run environment without the policy model with random actions (set env parameters in `src/config/env_params.json`):
@@ -57,8 +60,9 @@ python infer.py
 - ~~Start testing different reward policies aimed at emerging social distancing traits (interactions need to be sufficiently non-random and contribute to reducing pathogen flow)~~
 - ~~Potentially increase the complexity of agent interactions (if necessary)~~
 
-### Final report - 10. 1. 2025:
-- Succeed (or fail) in emulating social distancing traits
-- Perform extensive experiments (environment, reward policy, agent movement/interactions, etc.)
-- Compare emergent behavior with observations in ants from [Social Network Plasticity Decreases Disease Transmission in a Eusocial Insect](https://www.science.org/doi/10.1126/science.aat4793) 
-- Make a cool visualization for the presentation
+### ~~Final report - 10. 1. 2025:~~
+- ~~Perform extensive experiments (environment, reward policy, agent movement/interactions, etc.)~~
+- ~~Compare emergent behavior with observations in ants from [Social Network Plasticity Decreases Disease Transmission in a Eusocial Insect](https://www.science.org/doi/10.1126/science.aat4793)~~
+- ~~Conclude whether emulating social distancing traits was successful~~
+- ~~Update the report (text/figures) with the latest results~~
+- ~~Make a cool visualization for the presentation~~
