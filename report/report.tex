@@ -47,42 +47,31 @@ Modeling Social Distancing with Reinforcement Learning}
 
 \maketitle
 
-\noindent\textit{\textbf{ABSTRACT: This study investigates the emergence of social distancing behaviors in artificial agents using a reinforcement learning (RL) framework. In a two-dimensional environment, agents learn to minimize disease transmission by avoiding infected individuals, inspired by natural behaviors like those of ants. Agents exchange health information and adapt their movements to reduce interactions with infected individuals. The results show that agents trained with a basic reward policy exhibit increased separation between healthy and infected agents, as reflected in network metrics like modularity and clustering. The study also explores the effects of different reward components and external tasks, refining agent behavior and enhancing social distancing patterns. These findings demonstrate the potential of RL for modeling disease transmission and social distancing strategies, offering valuable insights for applications in public health simulations, swarm robotics, and adaptive multi-agent systems.}}
+\noindent\textit{\textbf{ABSTRACT: This study explores the use of reinforcement learning (RL) to model social distancing behaviors in artificial agents, aiming to minimize disease transmission in a two-dimensional environment. Inspired by natural behaviors observed in species like ants, agents exchange health information and adapt their movements to avoid infected individuals. We investigate how different reward structures, such as collision-based penalties and external tasks like wall-touching, influence agent behavior and the emergence of social distancing. Results show that agents trained with RL exhibited increased separation between healthy and infected agents, reducing infection spread. The findings suggest that RL can be a powerful tool for simulating disease dynamics and informing swarm robotics and public health strategies.}}
 
 \section{Introduction}
 
-The spread of infectious diseases presents a significant challenge in both human and animal populations, prompting the development of mechanisms—both natural and artificial—to minimize transmission. Social distancing has emerged as a common adaptive behavior in nature, where organisms avoid close contact with infected individuals to protect themselves and their groups. This phenomenon has been observed across various species and environments, suggesting it provides an evolutionary advantage in mitigating disease transmission risks. During the COVID-19 pandemic, social distancing also became a key public health strategy for humans, sparking interest in understanding how such behaviors might autonomously emerge and evolve in artificial agents.
+The spread of infectious diseases presents a significant challenge to both human and animal populations, prompting the development of mechanisms to minimize transmission. Social distancing, an adaptive behavior where organisms avoid infected individuals, has been observed across various species, providing an evolutionary advantage in disease mitigation. During the COVID-19 pandemic, social distancing became a key public health strategy, prompting interest in how such behaviors might emerge in artificial agents.
 
-Modeling disease transmission and social distancing behaviors in simulated environments can provide insights into the underlying dynamics of these processes and offer potential applications in fields such as epidemiology, robotics, and swarm intelligence. Traditional approaches often rely on predefined rules to drive agent behaviors, which can limit the complexity and adaptability of emergent patterns. In contrast, reinforcement learning (RL) offers a flexible framework where agents learn to navigate environments based on reward structures, enabling more organic and adaptive behaviors that evolve in response to environmental pressures.
+Modeling disease transmission and social distancing behaviors in simulated environments can provide valuable insights for fields like epidemiology, robotics, and swarm intelligence. Traditional methods often rely on predefined rules, limiting the complexity and adaptability of agent behaviors. Reinforcement learning (RL), however, offers a flexible framework where agents learn to adapt based on reward structures, fostering more organic behaviors that evolve in response to environmental pressures.
 
-In this study, we aim to model social distancing behaviors using a reinforcement learning approach inspired by natural systems. Agents will learn to minimize disease transmission within a two-dimensional environment by adapting their interactions based on health information exchanged with one another. We will build on existing multi-agent reinforcement learning frameworks, particularly those designed for predator-prey dynamics, to simulate agent behavior under conditions of disease spread. This setup will allow us to explore how reward structures and network adaptations foster the emergence of social distancing behaviors, where agents autonomously avoid infected individuals.
+In this study, we use RL to model social distancing behaviors in agents within a two-dimensional environment. By adapting their interactions based on health information exchanged with one another, agents aim to minimize disease transmission. Building on predator-prey dynamics in multi-agent RL frameworks, we explore how different reward structures and network adaptations contribute to the emergence of social distancing, where agents autonomously avoid infected individuals.
 
-Through our model, we aim to deepen our understanding of how social distancing behaviors emerge and contribute to the broader field of adaptive multi-agent systems. Ultimately, this research may inform both theoretical models of disease transmission and practical applications in areas requiring coordinated group behavior, such as swarm robotics and public health simulations.
-
+Our goal is to deepen the understanding of social distancing behaviors in adaptive multi-agent systems, with potential applications in disease transmission modeling, swarm robotics, and public health simulations.
 
 \section{Related Work}
 
-In the article Predator–prey survival pressure is sufficient to evolve swarming behaviors \cite{li2023predator}, the authors employ a reinforcement learning (RL) approach to model predator and prey behaviors within a cooperative–competitive multi-agent RL framework. Predator agents are rewarded for successfully catching prey, while prey agents receive rewards for avoiding capture and staying alive. This approach differs significantly from traditional behavior modeling, which often relies on predefined rules to drive agents toward expected behaviors. Such rule-based models may fail to capture the complexity and adaptability of real-world dynamics. By contrast, reinforcement learning provides rewards that encourage or discourage specific actions, allowing agents to develop more organic and adaptive behaviors. Through this predator-prey framework, the authors observed emergent behaviors such as flocking and swarming among prey agents and dispersion tactics among predators. These findings demonstrate that RL-based approaches can effectively foster diverse and adaptive group behaviors. In our work, we aim to extend this method to model disease spread, adapting agent parameters and reward mechanisms to simulate social distancing behaviors.
+In Predator–prey survival pressure is sufficient to evolve swarming behaviors \cite{li2023predator}, the authors use reinforcement learning (RL) to model predator-prey dynamics in a cooperative–competitive multi-agent framework. Predators are rewarded for catching prey, and prey for avoiding capture, allowing agents to develop adaptive behaviors such as swarming and predator dispersion. Unlike traditional rule-based models, RL enables emergent, flexible behaviors that better reflect real-world complexity. Drawing from this, we adapt RL methods to model disease spread, tuning agent parameters and rewards to simulate social distancing behaviors.
 
-The complexities of disease spread and natural social distancing behaviors are further explored in Infectious diseases and social distancing in nature \cite{stockmaier2021infectious}. This study investigates social distancing as an adaptive response to disease across various animal species, including humans. Social distancing behaviors may emerge as precautionary actions by healthy individuals or as physiological responses in infected individuals. The authors examine the mechanisms underlying these behaviors in both infected and non-infected subjects, highlighting how natural populations instinctively adjust social interactions to reduce disease transmission.
+Social distancing as a natural response to disease is further explored in Infectious diseases and social distancing in nature \cite{stockmaier2021infectious}, which examines how animals instinctively adjust interactions to reduce transmission. These behaviors arise through precautionary actions by healthy individuals or physiological responses in infected ones. Meanwhile, Romano et al. \cite{romano2022tradeoff}, in The trade-off between information and pathogen transmission in animal societies, highlight the balance between minimizing infection risk and maintaining critical social connections. They propose “network plasticity” as a mechanism enabling populations to optimize this trade-off, offering insights into decision-making within social groups.
 
-Building on this, Romano et al. (2022), in The trade-off between information and pathogen transmission in animal societies \cite{romano2022tradeoff}, argue that social distancing alone may not suffice to control disease spread. They observe that individuals within populations rely on information exchange, which provides significant adaptive benefits. This article explores the balance animals must strike between maintaining essential social connections and minimizing infection risk, suggesting that animals develop “network plasticity” to navigate these trade-offs. The authors propose that this plasticity enables populations to balance the costs and benefits of social interactions, offering valuable insights into the motivations behind individual actions in a group context. These trade-offs are particularly relevant for modeling disease spread, as they emphasize the intricate decision-making processes influencing behavior within a population.
-
-Together, these studies provide essential frameworks and insights into adaptive behavior modeling under environmental pressures. Our work leverages these principles by employing a reinforcement learning model that integrates disease spread and social distancing, aiming to simulate the interplay between agent interactions and disease transmission dynamics.
+Together, these studies provide frameworks for modeling adaptive behaviors under environmental pressures. Leveraging these insights, we use RL to simulate the dynamics of disease transmission, focusing on how agent interactions influence social distancing and infection spread.
 
 \section{Methodology}
 
 \subsection{Problem Definition}
 
 Our objective is to simulate the spread of infectious diseases within a population of agents navigating a two-dimensional environment. The goal is to explore how agents can autonomously learn to minimize transmission by adapting their interactions based on health information exchanged with others. By aligning agent behavior with health-driven rewards and penalties, we aim to model emergent social distancing behaviors that limit contact with infected peers while balancing the need for interaction.
-
-\subsection{Disease Spread Modeling}
-
-The study of Lasius niger ants \cite{Stroeymeyt2018} revealed an intriguing natural strategy for controlling disease spread. When exposed to the fungal pathogen Metarhizium brunneum, these ants dynamically altered their social network structure to reduce transmission risk. Rather than merely avoiding infected individuals, the entire colony adapted its social interactions to limit disease spread.
-
-Both infected and uninfected ants exhibited adaptive behaviors: infected ants spent more time outside the nest, reducing exposure to healthy nest mates, while uninfected ants increased their spatial distance from others, particularly those exposed to the pathogen. These behavioral changes enhanced the network’s modularity, creating compartments within the social structure that contained the spread of infection.
-
-We incorporated similar adaptive behavioral adjustments into a reinforcement learning model to study disease transmission dynamics. Agents were rewarded for exchanging health information and penalized for close contact with infected individuals, fostering social distancing behaviors.
 
 \subsection{Simulation Environment}
 
@@ -113,13 +102,7 @@ where $x$ is the agent's position, $v$ its velocity, $\theta$ its heading angle,
     \label{fig:main_figure}
 \end{figure}
 
-To tailor the framework to our objectives, several modifications were implemented. These include:
-\begin{enumerate}
-    \item Agent visualization (unicycle to ant) and movement parameters (more "ant-like").
-    \item Agent environment perception includes health status of the perceived agents.
-    \item Keeping track of agent interactions, used for network evaluation.
-    \item Redefine the reward policy to align with our disease-spread mitigation goals.
-\end{enumerate}
+To tailor the framework to our objectives, we implemented several modifications: 1) changed agent visualization from unicycles to ant-like figures and adjusted movement parameters; 2) incorporated health status perception for each agent; 3) tracked agent interactions for network evaluation; and 4) redefined the reward policy to align with disease-spread mitigation goals.
 
 \subsection{Basic Reward Policy}
 
@@ -142,34 +125,32 @@ The above mention policy is demonstrated in isolation with all healthy agents in
     \label{fig:demo}
 \end{figure}
 
-We experimented with a diminishing reward system, where consecutive interactions were penalized progressively, which effectively prevented agent clustering: 
+We tried a few approaches to augment the simple reward policy:
+
+\begin{enumerate} 
+    \item \textbf{Diminishing Reward for Interactions} $\rightarrow$ To reduce agent clustering, consecutive interactions were progressively penalized based on recent interactions ($h(x)\rightarrow$ health status of agent $x$).
 $$
 \mathrm{reward}(a, b) = \begin{cases}
-    -\lambda & \text{if } sick(a) \neq sick(b) \\ 
+    -\lambda & \text{if } h(a) \neq h(b) \\ 
     +\sigma * \gamma (1 - recent(a,b)) & \text{otherwise.}
 \end{cases}
 $$
-However, we ultimately decided not to include it in the final model, as it was considered overly engineered. 
-
-To further enhance agent behavior, we introduced optional reward components that address specific aspects of agent-environment dynamics. These additions allow for greater adaptability to different scenarios:
-
-\begin{enumerate}
-    \item \textbf{Wall Collision Penalty} $\rightarrow$ In non-periodic environments, where agents encounter boundaries, a wall collision penalty discourages agents from colliding with walls:
-    $$
-    \mathrm{reward}(a) = \begin{cases}
-        -\lambda & \text{if a collides with any wall}\\ 
-        0 & \text{otherwise.}
-    \end{cases}
-    $$
-    \item \textbf{Control Penalty} $\rightarrow$ To mimic energy consumption during movement, a control penalty was introduced. This reward is proportional to the magnitude of the agent’s control inputs ($aF$ for forward force and $aR$ for rotational force), encouraging agents to exhibit conservative movement:
-    $$
-    \text{reward}(aF, aR) = -(\alpha |aF| + \beta |aR|)
-    $$
+    \item \textbf{Wall Collision Penalty} $\rightarrow$ In non-periodic environments, we penalized agents for colliding with walls. 
+$$
+\mathrm{reward}(a) = \begin{cases}
+    -\lambda & \text{if a collides with any wall}\\ 
+    0 & \text{otherwise.}
+\end{cases}
+$$
+    \item \textbf{Energy Control Penalty} $\rightarrow$ A control penalty was introduced to simulate energy consumption, penalizing the magnitude of the agent’s control inputs.
+$$
+\text{reward}(aF, aR) = -(\alpha |aF| + \beta |aR|)
+$$
 \end{enumerate}
 
-These optional components offer additional flexibility to customize agent behavior for specific objectives while maintaining the simplicity and broad applicability of the core reward system. Together, the diminishing reward mechanism and optional components have proven effective in creating high-performing agents, with their interaction networks closely resembling real-world scenarios. Ant behavior serves as a key baseline for comparison, further validating the model's adaptability across various species and contexts.
+However, we found these approaches too engineered for our goals and ultimately decided to stick with a simpler reward policy.
 
-Introducing an external task can enhance agent performance by adding complexity that more accurately reflects real-world dynamics, improving the model’s capacity to evaluate and simulate realistic agent interactions and responses to disease transmission. The external task we selected involves agents alternating between touching the left and right walls. Initially, each agent is randomly assigned a task to either touch the left or right wall. Agents are rewarded with +0.1 for moving in the correct direction and +1 for successfully reaching the assigned wall. Once an agent completes the task, it is switched to the opposite wall, prompting the agent to continuously adapt its movement strategy.
+What we did find to vastly improve visualization results was the introduction of an external task. This task added complexity that better reflected real-world dynamics. Agents alternated between touching the left and right walls, with each agent initially assigned a wall. They were rewarded $+0.1$ for moving in the correct direction and $+1$ for reaching the assigned wall. After completing the task, agents switched to the opposite wall, requiring them to continuously adapt their movement strategy. This task significantly enhanced the agents' performance and provided clearer insights into their behavior.
 
 \subsection{Alternative Information Exchange}
 
@@ -179,11 +160,9 @@ Our main exploration of agent interaction (information exchange) was on the basi
 
 \subsection{Interaction Network Observations}
 
-To assess whether social distancing behaviors emerge in agent interactions, we convert these interactions into a network and analyze its structure, following methods outlined in Stroeymeyt et al. (2018) \cite{Stroeymeyt2018}. During each evaluation step, interactions between agents are tracked and recorded in an $n \times n$ interaction matrix, where $n$ is the total number of agents. A collision between two agents is considered an interaction. After each evaluation, the interaction matrix is normalized to create the network. In this network, each node represents an agent, and edges are formed between nodes if their interaction value exceeds a threshold of 0.01. The interaction matrix values are used as edge weights, and each node is labeled with the agent's health status.
+To assess the emergence of social distancing behaviors, we convert agent interactions into a network as described in Stroeymeyt et al. (2018) \cite{Stroeymeyt2018}. During each evaluation step, interactions are recorded in an $n \times n$ matrix, where $n$ is the total number of agents. A collision between agents is considered an interaction. After each evaluation, the matrix is normalized to create the network, where nodes represent agents and edges form if interaction values exceed a $0.01$ threshold. Edge weights correspond to interaction values, and nodes are labeled with the agents' health status.
 
-We tested our trained model by running an episode of 10,000 steps with both a random untrained network and a trained network. For each scenario, we constructed a network of all interactions during the episode to better understand the agent behaviors. In the random network, no clear structure emerged, and agents formed a nearly fully connected network. In contrast, the trained network showed emerging patterns, with infected agents interacting less with healthy ones but continuing to interact with other infected agents. 
-
-This behavior aligns with our expectations. The separation in agent behavior becomes more apparent when edges are weighted based on the number of interactions between agents, providing a clearer representation of significant interactions. The resulting weighted network is displayed in Figure \ref{fig:filtered_net}.
+We evaluated our trained model over a $10,000$-step episode using both a random, untrained network and a trained network, constructing interaction networks to analyze agent behavior. The random network lacked structure, forming a mostly fully connected graph. In contrast, the trained network exhibited separation, with infected agents interacting less with healthy ones while maintaining interactions with other infected agents. When edges were weighted by interaction frequency, these patterns became clearer, as shown in Figure \ref{fig:filtered_net}.
 
 \begin{figure}[hbt]
     \centering
@@ -192,11 +171,9 @@ This behavior aligns with our expectations. The separation in agent behavior bec
     \label{fig:filtered_net}
 \end{figure}
 
-This network is used to calculate relevant network measures such as clustering, modularity (between infected and non-infected agents), and network density, among others. These metrics help us better understand agent interactions. We anticipate that these metrics will increase as agents with the same health status interact more frequently within their respective groups.
+We calculated network metrics such as clustering, modularity, and density to quantify agent interactions. Modularity increased from $-0.0005$ (random) to $0.25$ (trained), and clustering rose from $0.056$ to $0.066$, indicating greater group separation and the emergence of social distancing. These changes align with reduced infection spread, as suggested in \cite{volz2011effects}.
 
-In the filtered network, a clear trend emerges where infected agents interact significantly less with healthy agents. To gain deeper insights into these interactions and assess metrics beyond simple visual inspection, we analyzed key network properties related to pathogen transmission. Modularity increased from $-0.0005$ (in the random network) to $0.25$ (in the trained network), indicating greater separation between groups and denser clusters. This trend was further supported by a rise in clustering values from $0.056$ (random) to $0.066$ (trained). These changes suggest the emergence of basic social distancing behaviors, where infected and healthy agents reduce their interactions. Volz et al. (2011) \cite{volz2011effects} indicate that these properties contribute to reducing the spread of infection.
-
-To explore pathogen-induced changes in network properties, we used our best-performing model and conducted $10$ experiments. In each experiment, we first designated certain agents as infected and performed a baseline evaluation episode of $10,000$ steps, during which no agents were actually infected. We recorded metrics such as clustering, modularity, and network efficiency. After this, we infected the designated agents and repeated the evaluation. The differences in these metrics before and after infection were then calculated to assess the impact of infection on network properties.
+To study pathogen-induced changes, we ran $10$ experiments using the best-performing model. In each, agents were designated as infected, and a baseline $10,000$-step evaluation was conducted without actual infections. Metrics were recorded before and after introducing infections. Results in Figure \ref{fig:induced_changes} show increased modularity as infected agents segregated and decreased network efficiency, consistent with reduced pathogen spread. However, clustering unexpectedly decreased due to the high connectivity of the initial infection-free network, where agents formed dense groups with a clustering coefficient of $0.138$.
 
 \begin{figure}[hbt]
     \centering
@@ -205,7 +182,7 @@ To explore pathogen-induced changes in network properties, we used our best-perf
     \label{fig:induced_changes}
 \end{figure}
 
-The results, shown in Figure \ref{fig:induced_changes}, reveal a significant increase in modularity, as infected agents became more segregated from the healthy population. Additionally, network efficiency decreased, suggesting an increase in the shortest paths within the network, which is consistent with reduced pathogen spread. However, contrary to expectations, clustering decreased. This anomaly can be explained by the initial lack of infected agents, resulting in a highly connected network with a high clustering coefficient of 0.138 due to the agents’ tendency to form dense groups.
+The results, shown in Figure \ref{fig:induced_changes}, reveal a significant increase in modularity, as infected agents became more segregated from the healthy population. Additionally, network efficiency decreased, suggesting an increase in the shortest paths within the network, which is consistent with reduced pathogen spread. However, contrary to expectations, clustering decreased. This anomaly can be explained by the initial lack of infected agents, resulting in a highly connected network with a high clustering coefficient of $0.138$ due to the agents’ tendency to form dense groups.
 
 \subsection{Simulation Visualization Observations}
 
@@ -224,19 +201,17 @@ The results, shown in Figure \ref{fig:induced_changes}, reveal a significant inc
     \label{fig:trained_viz}
 \end{figure}
 
-Figure \ref{fig:trained_viz} illustrates a simulation of our best-performing policy. Orange ants represent infected agents, while black ants represent healthy ones. The left image (frame 25) shows the start of the simulation, and the right image (frame 1300) depicts a later stage. A clear separation between the two groups is observed, minimizing contact between agents of different health statuses. Notably, this separation only emerged after introducing the additional left-to-right movement task. Without this task, while the interaction network properties remained similar, the visual separation was far less pronounced.
+Figure \ref{fig:trained_viz} illustrates a simulation of our best-performing policy. Orange ants represent infected agents, while black ants represent healthy ones. The left image (frame $25$) shows the start of the simulation, and the right image (frame $1300$) depicts a later stage. A clear separation between the two groups is observed, minimizing contact between agents of different health statuses. Notably, this separation only emerged after introducing the additional left-to-right movement task. Without this task, while the interaction network properties remained similar, the visual separation was far less pronounced.
 
 \section{Discussion}
 
-In this study, we explored the use of reinforcement learning (RL) to model social distancing behaviors in artificial agents, focusing on minimizing disease transmission in a two-dimensional environment. Drawing inspiration from natural behaviors such as those observed in ants, agents exchanged health information and adapted their movements to avoid infected individuals, simulating social distancing. 
+This study used reinforcement learning (RL) to model social distancing behaviors in artificial agents, aiming to minimize disease transmission in a two-dimensional environment. Inspired by natural behaviors like those of ants, agents exchanged health information and adapted their movements to avoid infected individuals, simulating social distancing.
 
-Results showed that agents trained with a basic reward policy for avoiding infected individuals successfully increased the separation between healthy and infected agents, as observed in interaction networks. Key network metrics, such as modularity and clustering, revealed clear segmentation between infected and non-infected agents, supporting the emergence of social distancing behavior. The network's increased modularity and clustering suggested that agents were minimizing disease transmission by avoiding contact with infected individuals. 
+Results showed that agents trained with a basic reward policy increased the separation between healthy and infected agents, as reflected in network metrics like modularity and clustering. These metrics indicated that agents successfully minimized disease transmission by avoiding contact with infected individuals.
 
-We also explored the effects of reward components, such as diminishing rewards, control penalties, and wall collision penalties, which further refined the agents’ behavior. These components enhanced adaptability, encouraging more efficient movement patterns and minimizing the risk of infection spread.
+We also examined the impact of reward components, including diminishing rewards, control penalties, and wall collision penalties, which refined agent behavior and encouraged more efficient movement patterns. Additionally, agents alternated between touching walls, promoting more structured behavior and facilitating social distancing. In contrast, a pheromone-based exchange system was less effective due to its misalignment with reward-driven actions.
 
-A key aspect of our model was the integration of an external task—agents alternating between touching left and right walls—which encouraged more structured behavior, facilitating social distancing. In contrast, a pheromone-based information exchange system was less effective due to its lack of direct alignment with reward-driven actions. This highlights the importance of designing reward systems that guide agent behavior towards the desired outcome. 
-
-Our findings suggest RL can effectively model disease spread and social distancing behaviors. Future work can build on these findings by incorporating more complex disease transmission dynamics, improving agent interactions, and applying the model to real-world scenarios like public health simulations and swarm robotics.
+Our findings suggest RL can effectively model disease spread and social distancing behaviors. Future research could build on these results by incorporating more complex disease dynamics, improving agent interactions, and applying the model to public health simulations and swarm robotics.
 \\
 
 \noindent\textbf{CONTRIBUTIONS}: \textbf{LT} prepared/fixed the environment setup and did the basic avoid/touch experiments, \textbf{INS} and \textbf{AZ} did the reward policy experiments and the network statistics, \textbf{NL} did the alternative interactions experiment and organized/polished the report. Each member wrote their own parts of the report.
