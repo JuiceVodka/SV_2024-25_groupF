@@ -60,9 +60,9 @@ python infer.py
 - ~~Start testing different reward policies aimed at emerging social distancing traits (interactions need to be sufficiently non-random and contribute to reducing pathogen flow)~~
 - ~~Potentially increase the complexity of agent interactions (if necessary)~~
 
-### Final report - 10. 1. 2025:
-- Perform extensive experiments (environment, reward policy, agent movement/interactions, etc.)
-- Compare emergent behavior with observations in ants from [Social Network Plasticity Decreases Disease Transmission in a Eusocial Insect](https://www.science.org/doi/10.1126/science.aat4793) 
-- Conclude whether emulating social distancing traits was successful
-- Update the report (text/figures) with the latest results
-- Make a cool visualization for the presentation
+### ~~Final report - 10. 1. 2025:~~
+- ~~Perform extensive experiments (environment, reward policy, agent movement/interactions, etc.)~~
+- ~~Compare emergent behavior with observations in ants from [Social Network Plasticity Decreases Disease Transmission in a Eusocial Insect](https://www.science.org/doi/10.1126/science.aat4793)~~
+- ~~Conclude whether emulating social distancing traits was successful~~
+- ~~Update the report (text/figures) with the latest results~~
+- ~~Make a cool visualization for the presentation~~
