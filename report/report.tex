@@ -73,9 +73,9 @@ Our objective is to simulate the spread of infectious diseases within a populati
 
 \subsection{Simulation Environment}
 
-This study employs a multi-agent reinforcement learning (RL) framework, adapted from the environment developed by Li et al. (2023) \cite{li2023predator}. The simulation takes place in a two-dimensional continuous space with periodic boundary conditions, meaning that agents crossing one edge of the square environment reappear on the opposite edge, retaining their velocity.
+This study employed a multi-agent reinforcement learning (RL) framework, adapted from the environment developed by Li et al. (2023) \cite{li2023predator}. The simulation takes place in a two-dimensional continuous space with periodic boundary conditions, meaning that agents crossing one edge of the square environment reappear on the opposite edge, retaining their velocity.
 
-Agents are modeled to resemble ants (changed from unicycles like in Figure \ref{fig:main_figure}), with their body consisting of three connected circles (the back circle being slightly larger) and six legs. Their behavior is driven by a combination of active and passive forces. Active forces, controlled by the agents, include a forward movement force ($aF$) aligned with their heading direction and a rotational force ($aR$) enabling changes in heading. Passive forces, inherent to the environment, include drag force ($Fd$), simulating resistance opposing the agent's velocity, and repulsive force ($Fa$), which prevents agents from overlapping by pushing them apart. At each simulation step, the agents' positions and velocities are updated by summing all acting forces, with the dynamics governed by:
+Agents were modeled to resemble ants (changed from unicycles like in Figure \ref{fig:main_figure}), with their body consisting of three connected circles (the back circle being slightly larger) and six legs. Their behavior is driven by a combination of active and passive forces. Active forces, controlled by the agents, include a forward movement force ($aF$) aligned with their heading direction and a rotational force ($aR$) enabling changes in heading. Passive forces, inherent to the environment, include drag force ($Fd$), simulating resistance opposing the agent's velocity, and repulsive force ($Fa$), which prevents agents from overlapping by pushing them apart. At each simulation step, the agents' positions and velocities are updated by summing all acting forces, with the dynamics governed by:
 
 $$ \dot{x} = v, \quad \dot{v} = \frac{ha_F + F_d + F_a}{m}, \quad \dot{\theta} = a_R $$  
 
@@ -164,7 +164,7 @@ We evaluated our trained model over a $10,000$-step episode using both a random,
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=0.85\linewidth]{filteredNet.png}
+    \includegraphics[width=0.8\linewidth]{filteredNet.png}
     \caption{Filtered learned interaction network.}
     \label{fig:filtered_net}
 \end{figure}
@@ -175,7 +175,7 @@ To study pathogen-induced changes, we ran $10$ experiments using the best-perfor
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=0.9\linewidth]{figures/induced_changes.png}
+    \includegraphics[width=0.8\linewidth]{figures/induced_changes.png}
     \caption{Changes in interaction network properties when introducing infected agents.}
     \label{fig:induced_changes}
 \end{figure}
@@ -186,16 +186,16 @@ The results, shown in Figure \ref{fig:induced_changes}, reveal a significant inc
 
 \begin{figure}[hbt]
     \centering
-    \begin{minipage}{0.21\textwidth}
+    \begin{minipage}{0.2\textwidth}
         \centering
         \includegraphics[width=.9\linewidth]{frame_25.png}
     \end{minipage}
     \hspace{0.2cm}
-    \begin{minipage}{0.21\textwidth}
+    \begin{minipage}{0.2\textwidth}
         \centering
         \includegraphics[width=.9\linewidth]{frame_1300.png}
     \end{minipage}
-    \caption{Start of simulation (left) compared to end of simulation (right)}
+    \caption{Environment simulation visualization: start (left) vs. end (right).}
     \label{fig:trained_viz}
 \end{figure}
 
@@ -212,7 +212,9 @@ We also examined the impact of reward components, including diminishing rewards,
 Our findings suggest RL can effectively model disease spread and social distancing behaviors. Future research could build on these results by incorporating more complex disease dynamics, improving agent interactions, and applying the model to public health simulations and swarm robotics.
 \\
 
-\small\noindent\textbf{CONTRIBUTIONS}: \textbf{LT} prepared/fixed the environment setup and did the basic avoid/touch experiments, \textbf{INS} and \textbf{AZ} did the reward policy experiments and the network statistics, \textbf{NL} did the alternative interactions experiment and organized/polished the report. Each member wrote their own parts of the report.
+\noindent\textbf{CONTRIBUTIONS}: \textbf{LT} prepared/fixed the environment setup and did the basic avoid/touch experiments, \textbf{INS} and \textbf{AZ} did the reward policy experiments and the network statistics, \textbf{NL} did the alternative interactions experiment and organized/polished the report. Each member wrote their own parts of the report.\\
+
+The source code for this project is available on \href{https://github.com/JuiceVodka/SV_2024-25_groupF}{GitHub Repository}.
 
 \printbibliography
 
