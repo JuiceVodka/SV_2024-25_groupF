@@ -333,20 +333,21 @@ class PredatorPreySwarmEnv(ParallelEnv):
         
         if not self.viewer and mode in ["human", "rgb_array"]:
             import rendering
-            self.viewer = rendering.Viewer(250, 250)
+            self.viewer = rendering.Viewer(700, 700)
             self.viewer.set_bounds(-1, 1, -1, 1.)
             agents = []
             self.tf = []
             if self._render_traj: self.trajrender = []
             for i in range(self._n_e):
                 if self._render_traj: self.trajrender.append( rendering.Traj( list(zip(self._p_traj[:,0,i], self._p_traj[:,1,i])),  False) )
-                agents.append( rendering.make_unicycle(self._size_e) )
+                #agents.append( rendering.make_unicycle(self._size_e) )
+                agents.append( rendering.make_ant(self._size_e) )
                 if self.infected[i]:
                     agents[i].set_color_alpha(0.778, 0.333, 0, 1)
                     if self._render_traj: self.trajrender[i].set_color_alpha(0.778, 0.333, 0, 0.5)
                 else:
-                    agents[i].set_color_alpha(0, 0.333, 0.778, 1)
-                    if self._render_traj: self.trajrender[i].set_color_alpha(0, 0.333, 0.778, 0.5)
+                    agents[i].set_color_alpha(0, 0, 0, 1)
+                    if self._render_traj: self.trajrender[i].set_color_alpha(0, 0, 0, 0.5)
                 self.tf.append( rendering.Transform() )
                 agents[i].add_attr(self.tf[i])
                 self.viewer.add_geom(agents[i])
