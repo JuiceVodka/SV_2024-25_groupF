@@ -27,6 +27,8 @@ class PredatorPreySwarmEnv(ParallelEnv):
             self._angle_e_max = 0.5
             self._ep_len = 200
             self._part_infected = 0.1
+            self._spread = True
+            self._infection_chance = 0.9
             
             # environment parameters
             self._is_periodic = True
@@ -190,6 +192,11 @@ class PredatorPreySwarmEnv(ParallelEnv):
             for j in range(i):
                 if self._is_collide_b2b[i,j]:
                     if self.infected[i] != self.infected[j]:
+                        if self._spread:
+                            transmission = np.random.choice([1, 0], p=[self._infection_chance, 1-self._infection_chance])
+                            if transmission:
+                                self.infected[i] = True
+                                self.infected[j] = True
                         reward[i] -= 1
                         reward[j] -= 1
                     else:
@@ -335,22 +342,22 @@ class PredatorPreySwarmEnv(ParallelEnv):
             import rendering
             self.viewer = rendering.Viewer(700, 700)
             self.viewer.set_bounds(-1, 1, -1, 1.)
-            agents = []
+            self.agentsC = []
             self.tf = []
             if self._render_traj: self.trajrender = []
             for i in range(self._n_e):
                 if self._render_traj: self.trajrender.append( rendering.Traj( list(zip(self._p_traj[:,0,i], self._p_traj[:,1,i])),  False) )
                 #agents.append( rendering.make_unicycle(self._size_e) )
-                agents.append( rendering.make_ant(self._size_e) )
+                self.agentsC.append( rendering.make_ant(self._size_e) )
                 if self.infected[i]:
-                    agents[i].set_color_alpha(0.778, 0.333, 0, 1)
+                    self.agentsC[i].set_color_alpha(0.778, 0.333, 0, 1)
                     if self._render_traj: self.trajrender[i].set_color_alpha(0.778, 0.333, 0, 0.5)
                 else:
-                    agents[i].set_color_alpha(0, 0, 0, 1)
+                    self.agentsC[i].set_color_alpha(0, 0, 0, 1)
                     if self._render_traj: self.trajrender[i].set_color_alpha(0, 0, 0, 0.5)
                 self.tf.append( rendering.Transform() )
-                agents[i].add_attr(self.tf[i])
-                self.viewer.add_geom(agents[i])
+                self.agentsC[i].add_attr(self.tf[i])
+                self.viewer.add_geom(self.agentsC[i])
                 if self._render_traj: self.viewer.add_geom(self.trajrender[i])
                 
         elif self.viewer and mode in ["human", "rgb_array"]:
@@ -358,6 +365,10 @@ class PredatorPreySwarmEnv(ParallelEnv):
                 self.tf[i].set_rotation(self._theta[0,i])
                 self.tf[i].set_translation(self._p[0,i], self._p[1,i])
                 if self._render_traj: self.trajrender[i].set_traj(list(zip(self._p_traj[:,0,i], self._p_traj[:,1,i])))
+                if self.infected[i]:
+                    self.trajrender[i].set_color_alpha(0.778, 0.333, 0, 1)
+                    self.agentsC[i].set_color_alpha(0.778, 0.333, 0, 1)
+                    if self._render_traj: self.trajrender[i].set_color_alpha(0.778, 0.333, 0, 0.5)
             return self.viewer.render(return_rgb_array=mode=="rgb_array")
     
     def close(self):
