@@ -16,6 +16,7 @@ We applied RL to simulate the emergence of social distancing behaviors in respon
 
 The results of our experiments showed that RL could successfully model social distancing behaviors. Through network analysis, we observed increased modularity and reduced interactions between healthy and infected agents, indicating that the agents learned to maintain a greater distance from infected individuals. Additionally, we tested several reward structures and external tasks, ultimately finding that a simple task (wall-touching) significantly improved agent behavior and facilitated social distancing. We also experimented with alternative information exchange methods, such as pheromone-based systems, but found that they were less effective compared to the movement-based tasks. Our work demonstrates the potential of RL in simulating disease dynamics and highlights its applicability in fields such as swarm robotics and public health simulations.
 
+![Simulation Environment Visualization](isolate.gif)
 
 ## Simulation setup
 
