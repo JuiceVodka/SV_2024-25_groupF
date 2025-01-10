@@ -55,23 +55,21 @@ The spread of infectious diseases presents a significant challenge to both human
 
 Modeling disease transmission and social distancing behaviors in simulated environments can provide valuable insights for fields like epidemiology, robotics, and swarm intelligence. Traditional methods often rely on predefined rules, limiting the complexity and adaptability of agent behaviors. Reinforcement learning (RL), however, offers a flexible framework where agents learn to adapt based on reward structures, fostering more organic behaviors that evolve in response to environmental pressures.
 
-In this study, we use RL to model social distancing behaviors in agents within a two-dimensional environment. By adapting their interactions based on health information exchanged with one another, agents aim to minimize disease transmission. Building on predator-prey dynamics in multi-agent RL frameworks, we explore how different reward structures and network adaptations contribute to the emergence of social distancing, where agents autonomously avoid infected individuals.
+In this study, we used RL to model social distancing behaviors in agents within a two-dimensional environment. By adapting their interactions based on health information exchanged with one another, agents aim to minimize disease transmission. Building on predator-prey dynamics in multi-agent RL frameworks, we explored how different reward structures and network adaptations contribute to the emergence of social distancing, where agents autonomously avoid infected individuals.
 
-Our goal is to deepen the understanding of social distancing behaviors in adaptive multi-agent systems, with potential applications in disease transmission modeling, swarm robotics, and public health simulations.
+Our goal was to deepen the understanding of social distancing behaviors in adaptive multi-agent systems, with potential applications in disease transmission modeling, swarm robotics, and public health simulations.
 
 \section{Related Work}
 
-In Predator–prey survival pressure is sufficient to evolve swarming behaviors \cite{li2023predator}, the authors use reinforcement learning (RL) to model predator-prey dynamics in a cooperative–competitive multi-agent framework. Predators are rewarded for catching prey, and prey for avoiding capture, allowing agents to develop adaptive behaviors such as swarming and predator dispersion. Unlike traditional rule-based models, RL enables emergent, flexible behaviors that better reflect real-world complexity. Drawing from this, we adapt RL methods to model disease spread, tuning agent parameters and rewards to simulate social distancing behaviors.
+In Predator–prey survival pressure is sufficient to evolve swarming behaviors \cite{li2023predator}, the authors used reinforcement learning (RL) to model predator-prey dynamics in a cooperative–competitive multi-agent framework. Predators are rewarded for catching prey, and prey for avoiding capture, allowing agents to develop adaptive behaviors such as swarming and predator dispersion. Unlike traditional rule-based models, RL enables emergent, flexible behaviors that better reflect real-world complexity. Drawing from this, we adapted RL methods to model disease spread, tuning agent parameters and rewards to simulate social distancing behaviors.
 
-Social distancing as a natural response to disease is further explored in Infectious diseases and social distancing in nature \cite{stockmaier2021infectious}, which examines how animals instinctively adjust interactions to reduce transmission. These behaviors arise through precautionary actions by healthy individuals or physiological responses in infected ones. Meanwhile, Romano et al. \cite{romano2022tradeoff}, in The trade-off between information and pathogen transmission in animal societies, highlight the balance between minimizing infection risk and maintaining critical social connections. They propose “network plasticity” as a mechanism enabling populations to optimize this trade-off, offering insights into decision-making within social groups.
+Social distancing as a natural response to disease is further explored in Infectious diseases and social distancing in nature \cite{stockmaier2021infectious}, which examines how animals instinctively adjust interactions to reduce transmission. These behaviors arise through precautionary actions by healthy individuals or physiological responses in infected ones. Meanwhile, Romano et al. \cite{romano2022tradeoff}, in The trade-off between information and pathogen transmission in animal societies, highlight the balance between minimizing infection risk and maintaining critical social connections. They proposed “network plasticity” as a mechanism enabling populations to optimize this trade-off, offering insights into decision-making within social groups.
 
 Together, these studies provide frameworks for modeling adaptive behaviors under environmental pressures. Leveraging these insights, we use RL to simulate the dynamics of disease transmission, focusing on how agent interactions influence social distancing and infection spread.
 
 \section{Methodology}
 
-\subsection{Problem Definition}
-
-Our objective is to simulate the spread of infectious diseases within a population of agents navigating a two-dimensional environment. The goal is to explore how agents can autonomously learn to minimize transmission by adapting their interactions based on health information exchanged with others. By aligning agent behavior with health-driven rewards and penalties, we aim to model emergent social distancing behaviors that limit contact with infected peers while balancing the need for interaction.
+Our objective is to simulate the spread of infectious diseases within a population of agents navigating a two-dimensional environment, exploring how they can autonomously learn to minimize transmission by adapting their interactions based on health information exchanged with others.
 
 \subsection{Simulation Environment}
 
@@ -166,7 +164,7 @@ We evaluated our trained model over a $10,000$-step episode using both a random,
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=0.9\linewidth]{filteredNet.png}
+    \includegraphics[width=0.85\linewidth]{filteredNet.png}
     \caption{Filtered learned interaction network.}
     \label{fig:filtered_net}
 \end{figure}
@@ -188,12 +186,12 @@ The results, shown in Figure \ref{fig:induced_changes}, reveal a significant inc
 
 \begin{figure}[hbt]
     \centering
-    \begin{minipage}{0.2\textwidth}
+    \begin{minipage}{0.21\textwidth}
         \centering
         \includegraphics[width=.9\linewidth]{frame_25.png}
     \end{minipage}
     \hspace{0.2cm}
-    \begin{minipage}{0.2\textwidth}
+    \begin{minipage}{0.21\textwidth}
         \centering
         \includegraphics[width=.9\linewidth]{frame_1300.png}
     \end{minipage}
@@ -214,7 +212,7 @@ We also examined the impact of reward components, including diminishing rewards,
 Our findings suggest RL can effectively model disease spread and social distancing behaviors. Future research could build on these results by incorporating more complex disease dynamics, improving agent interactions, and applying the model to public health simulations and swarm robotics.
 \\
 
-\noindent\textbf{CONTRIBUTIONS}: \textbf{LT} prepared/fixed the environment setup and did the basic avoid/touch experiments, \textbf{INS} and \textbf{AZ} did the reward policy experiments and the network statistics, \textbf{NL} did the alternative interactions experiment and organized/polished the report. Each member wrote their own parts of the report.
+\small\noindent\textbf{CONTRIBUTIONS}: \textbf{LT} prepared/fixed the environment setup and did the basic avoid/touch experiments, \textbf{INS} and \textbf{AZ} did the reward policy experiments and the network statistics, \textbf{NL} did the alternative interactions experiment and organized/polished the report. Each member wrote their own parts of the report.
 
 \printbibliography
 
