@@ -22,7 +22,7 @@ Our goal is to explore whether a basic policy can lead to the evolution of known
 ## Simulation setup
 
 ### Dependencies
-Just run the things below and install whatever dependencies you're missing (latest version). The only thing to note is that PyGlet requires an older version (1.5.27 works).
+Create the environment using environment.yaml.
 
 ### Test simulation environment
 Run environment without the policy model with random actions (set env parameters in `src/config/env_params.json`):
