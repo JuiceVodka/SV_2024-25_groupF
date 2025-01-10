@@ -22,7 +22,10 @@ Our goal is to explore whether a basic policy can lead to the evolution of known
 ## Simulation setup
 
 ### Dependencies
-Create the environment using environment.yaml.
+Create the conda environment using environment.yaml.
+```
+conda env create --name SV --file=environment.yaml
+```
 
 ### Test simulation environment
 Run environment without the policy model with random actions (set env parameters in `src/config/env_params.json`):
